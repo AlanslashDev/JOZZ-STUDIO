@@ -1,0 +1,416 @@
+/* Google Fonts — must come before @tailwind */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────
+   2. CSS CUSTOM PROPERTIES
+   ───────────────────────────────────────── */
+@layer base {
+  :root {
+    --bg: #050505;
+    --surface-1: #0F0F11;
+    --surface-2: #161619;
+    --surface-3: #1C1C20;
+    --border: rgba(255, 255, 255, 0.055);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --amber: #E8A64C;
+    --amber-dim: rgba(232, 166, 76, 0.15);
+    --coral: #FF5A3C;
+    --electric: #00E5FF;
+    --text-primary: #F2F0EB;
+    --text-muted: #8A8882;
+    --text-subtle: #3D3C39;
+    --transition-smooth: cubic-bezier(0.76, 0, 0.24, 1);
+    --transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    overflow-x: hidden;
+    cursor: none; /* Custom cursor replaces native */
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb {
+    background: #222;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--amber); }
+
+  ::selection {
+    background: var(--amber);
+    color: #050505;
+  }
+}
+
+/* ─────────────────────────────────────────
+   3. TYPOGRAPHY SYSTEM (Awwwards editorial scale)
+   ───────────────────────────────────────── */
+.font-editorial {
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+.font-display {
+  font-family: 'Syne', sans-serif;
+}
+
+/* ─── BTB-matched type scale ───────────────────────────────────────────────
+   Hero: big stacked editorial, tight tracking (BTB: text-4xl→text-7xl)
+   Display-XL: section H2s (BTB: text-3xl→text-7xl)
+   Display-LG: pull-quotes / callouts (BTB: text-3xl→text-6xl)
+   Stat: animated numbers (BTB: text-4xl lg:text-5xl)
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Hero headline — stacked full-viewport */
+.text-hero {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.8rem, 8vw, 7rem);
+  line-height: 0.93;
+  letter-spacing: 0.08em;
+}
+
+/* Primary section headings (H2) — Bebas Neue like BTB */
+.text-display-xl {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 5.5vw, 5rem);
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+}
+
+/* Pull-quote / callout headings */
+.text-display-lg {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.5rem, 3.5vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+}
+
+/* Counter / stat numbers — BTB uses text-4xl lg:text-5xl */
+.text-stat {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────
+   4. COLOR UTILITIES
+   ───────────────────────────────────────── */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #fce4a6 0%, #E8A64C 45%, #b87a28 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-white {
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.4) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-outline {
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.18);
+  color: transparent;
+  transition: all 0.4s ease;
+}
+.text-outline-gold {
+  -webkit-text-stroke: 1px rgba(232, 166, 76, 0.5);
+  color: transparent;
+}
+
+/* ─────────────────────────────────────────
+   5. GRAIN / NOISE TEXTURE
+   ───────────────────────────────────────── */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.038;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+/* ─────────────────────────────────────────
+   6. SURFACE / GLASS PANELS
+   ───────────────────────────────────────── */
+.glass {
+  background: rgba(14, 14, 16, 0.85);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--border);
+}
+
+.glass-strong {
+  background: rgba(10, 10, 12, 0.92);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid var(--border-strong);
+}
+
+.surface-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  transition: border-color 0.4s ease, transform 0.4s var(--transition-smooth);
+}
+
+.surface-card:hover {
+  border-color: rgba(232, 166, 76, 0.3);
+}
+
+/* ─────────────────────────────────────────
+   7. AWWWARDS CORNER BRACKETS
+   ───────────────────────────────────────── */
+.bracket-tl {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 20px;
+  height: 20px;
+  border-top: 1.5px solid rgba(232, 166, 76, 0);
+  border-left: 1.5px solid rgba(232, 166, 76, 0);
+  transition: border-color 0.35s ease, width 0.35s ease, height 0.35s ease;
+  pointer-events: none;
+}
+
+.bracket-br {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 20px;
+  height: 20px;
+  border-bottom: 1.5px solid rgba(232, 166, 76, 0);
+  border-right: 1.5px solid rgba(232, 166, 76, 0);
+  transition: border-color 0.35s ease, width 0.35s ease, height 0.35s ease;
+  pointer-events: none;
+}
+
+/* Activate on parent hover */
+.group:hover .bracket-tl,
+.bracket-parent:hover .bracket-tl {
+  border-color: rgba(232, 166, 76, 0.65);
+  width: 26px;
+  height: 26px;
+}
+.group:hover .bracket-br,
+.bracket-parent:hover .bracket-br {
+  border-color: rgba(232, 166, 76, 0.65);
+  width: 26px;
+  height: 26px;
+}
+
+/* ─────────────────────────────────────────
+   8. SPOTLIGHT CARD (mouse tracking radial)
+   ───────────────────────────────────────── */
+.spotlight-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* ─────────────────────────────────────────
+   9. MARQUEE STRIPS
+   ───────────────────────────────────────── */
+.marquee-wrap {
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+/* ─────────────────────────────────────────
+   10. SCROLL REVEAL BASE
+   ───────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.reveal.in-view {
+  animation: fadeUp 0.8s var(--transition-smooth) forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* ─────────────────────────────────────────
+   11. NAV LINK HOVER UNDERLINE SLIDES
+   ───────────────────────────────────────── */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 1px;
+  background: var(--amber);
+  transition: width 0.4s var(--transition-smooth);
+}
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* ─────────────────────────────────────────
+   12. AWWWARDS HORIZONTAL RULE (thin golden)
+   ───────────────────────────────────────── */
+.hr-amber {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
+  border: none;
+  opacity: 0.3;
+}
+
+/* ─────────────────────────────────────────
+   13. BUTTON VARIANTS
+   ───────────────────────────────────────── */
+.btn-amber {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  background: var(--amber);
+  color: #050505;
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 0 0 rgba(232, 166, 76, 0);
+}
+.btn-amber:hover {
+  background: #D49238;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px -8px rgba(232, 166, 76, 0.45);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  background: transparent;
+  transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease;
+}
+.btn-outline:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: rgba(232, 166, 76, 0.05);
+}
+
+/* ─────────────────────────────────────────
+   14. ANIMATED COUNT-UP NUMBER CARDS
+   ───────────────────────────────────────── */
+.stat-number {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+/* ─────────────────────────────────────────
+   15. AWWWARDS GRID DOT OVERLAY
+   ───────────────────────────────────────── */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ─────────────────────────────────────────
+   16. PAGE TRANSITION OVERLAY
+   ───────────────────────────────────────── */
+.page-curtain {
+  position: fixed;
+  inset: 0;
+  background: #050505;
+  z-index: 9999;
+  transform-origin: bottom;
+}
+
+/* ─────────────────────────────────────────
+   17. HOVER UNDERLINE SLIDE (for text links)
+   ───────────────────────────────────────── */
+.underline-slide {
+  position: relative;
+  display: inline-block;
+}
+.underline-slide::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.4s var(--transition-smooth);
+}
+.underline-slide:hover::after {
+  width: 100%;
+}
+
+/* ─────────────────────────────────────────
+   18. GLOW UTILITIES
+   ───────────────────────────────────────── */
+.glow-amber {
+  box-shadow: 0 0 60px -10px rgba(232, 166, 76, 0.3);
+}
+.glow-amber-sm {
+  box-shadow: 0 0 30px -8px rgba(232, 166, 76, 0.25);
+}
+.text-glow-amber {
+  text-shadow: 0 0 30px rgba(232, 166, 76, 0.5);
+}
+
+/* ─────────────────────────────────────────
+   19. CLIP / MASK SHAPES (Awwwards editorial)
+   ───────────────────────────────────────── */
+.clip-diagonal {
+  clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+}
+
+/* ─────────────────────────────────────────
+   20. MISC UTILITIES
+   ───────────────────────────────────────── */
+.no-select { user-select: none; -webkit-user-select: none; }
+.pointer-none { pointer-events: none; }
