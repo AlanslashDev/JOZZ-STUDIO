@@ -36,21 +36,26 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, featur
       onMouseMove={onMove}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.6, delay: index * 0.08, ease: [0.76, 0, 0.24, 1] }}
-      className={`group relative flex flex-col justify-between rounded-2xl surface-card spotlight-card overflow-hidden cursor-pointer ${
+      initial={{ opacity: 0, y: 50, scale: 0.94 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: '-20px 0px', amount: 0.1 }}
+      transition={{ 
+        duration: 0.8, 
+        delay: (index % 3) * 0.15, 
+        ease: [0.16, 1, 0.3, 1] 
+      }}
+      whileHover={{ y: -8, transition: { duration: 0.3 } }}
+      className={`group relative flex flex-col justify-between rounded-2xl surface-card spotlight-card overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-[0_20px_50px_rgba(232,166,76,0.12)] hover:border-brand-amber/50 ${
         featured ? 'md:col-span-2' : ''
       }`}
     >
       <Link to={`/services/${service.id}`} className="absolute inset-0 z-20" aria-label={`View details for ${service.title}`} />
-      {/* Spotlight radial */}
+      {/* Dynamic Cursor Spotlight Radial Glow */}
       <div
         className="absolute -inset-px rounded-2xl pointer-events-none transition-opacity duration-500"
         style={{
           opacity: hovered ? 1 : 0,
-          background: `radial-gradient(500px circle at ${mouse.x}px ${mouse.y}px, rgba(232,166,76,0.09), transparent 45%)`,
+          background: `radial-gradient(400px circle at ${mouse.x}px ${mouse.y}px, rgba(232,166,76,0.15), transparent 60%)`,
         }}
       />
 
@@ -96,13 +101,13 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, featur
         {/* Title */}
         <div className="flex-grow space-y-2 mb-5">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-editorial text-xl font-medium text-foreground group-hover:text-brand-amber transition-colors duration-300 leading-snug">
+            <h3 className="font-display font-bold uppercase tracking-wider text-base sm:text-lg text-foreground group-hover:text-brand-amber transition-colors duration-300 leading-snug">
               {service.title}
             </h3>
             <ArrowUpRight className="w-4 h-4 text-foreground-subtle group-hover:text-brand-amber opacity-0 group-hover:opacity-100 transition-all -translate-y-0.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0 mt-1" />
           </div>
-          <p className="text-[11px] font-mono text-brand-amber/70 uppercase tracking-widest">{service.tagline}</p>
-          <p className="text-sm text-foreground-muted leading-relaxed">{service.description}</p>
+          <p className="text-[10px] sm:text-[11px] font-mono text-brand-amber/80 uppercase tracking-widest">{service.tagline}</p>
+          <p className="text-xs sm:text-sm text-foreground-muted leading-relaxed font-light">{service.description}</p>
         </div>
 
         {/* Deliverables */}

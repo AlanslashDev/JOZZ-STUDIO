@@ -1,4 +1,4 @@
-import { ServiceItem, StatItem, PortfolioItem, TestimonialItem, ProcessStep, StudioInfo } from '../types';
+import { ServiceItem, StatItem, PortfolioItem, TestimonialItem, ProcessStep, StudioInfo, TeamMember } from '../types';
 
 /**
  * JOOZZ DESIGNING — SITE CONTENT & DATA STORE
@@ -26,6 +26,29 @@ export const STUDIO_INFO: StudioInfo = {
   }
 };
 
+export const PRODUCTION_TEAM: TeamMember[] = [
+  {
+    name: "JUSTINE",
+    image: "/team-justine.jpg",
+  },
+  {
+    name: "LORAINE",
+    image: "/team-loraine.jpg",
+  },
+  {
+    name: "JAIBIN",
+    image: "/team-jaibin.jpg",
+  },
+  {
+    name: "PRASANTH",
+    image: "/team-prasanth.jpg",
+  },
+  {
+    name: "LAJEESH",
+    image: "/team-lajeesh.jpg",
+  }
+];
+
 export const MARQUEE_KEYWORDS: string[] = [
   "LOGO DESIGN",
   "BRAND IDENTITY",
@@ -39,60 +62,8 @@ export const MARQUEE_KEYWORDS: string[] = [
 
 export const CORE_SERVICES: ServiceItem[] = [
   {
-    id: "why-choose-us",
-    number: "01",
-    title: "Why Choose Joozz Designing?",
-    heroHeadlineTop: "EXPERIENCED & TRUSTED",
-    heroHeadlineMain: "WHY CHOOSE US",
-    tagline: "Creative, reliable, and client-focused",
-    description:
-      "14+ years of professional design experience with a creative, reliable, and client-focused approach. We deliver high-quality designs with quick turnaround tailored to your business goals.",
-    image: "https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=1200&q=80",
-    imageAlt: "Creative strategic agency planning and design excellence",
-    deliverables: [
-      "14+ Years of Professional Design Experience",
-      "Creative, Reliable, & Client-Focused Approach",
-      "High-Quality Designs with Quick Turnaround",
-      "Designs Tailored to Your Business Goals"
-    ],
-    whatWeOffer: [
-      {
-        number: "01",
-        title: "14+ Years Experience",
-        description: "Over a decade and a half of mastering typography, branding systems, and prepress standards across global and UK industries."
-      },
-      {
-        number: "02",
-        title: "Client-Centric Philosophy",
-        description: "Direct collaboration with the principal designer from discovery to delivery without layers of account management."
-      },
-      {
-        number: "03",
-        title: "Quick Turnaround",
-        description: "Fast, dependable production cycles tailored to tight marketing launches and commercial printing deadlines."
-      },
-      {
-        number: "04",
-        title: "Bespoke Originality",
-        description: "Zero generic templates or repetitive presets. Every visual mark and layout is custom engineered for your brand."
-      },
-      {
-        number: "05",
-        title: "Press-Ready Precision",
-        description: "Flawless technical standards ensuring spot-on CMYK color separation, resolution, bleeds, and die-cut calibration."
-      },
-      {
-        number: "06",
-        title: "Multi-Platform Mastery",
-        description: "Cohesive visual continuity spanning tactile luxury print media to high-converting social and digital assets."
-      }
-    ],
-    idealFor: "Businesses seeking proven design experience, rapid turnarounds, and bespoke creative solutions.",
-    iconName: "ShieldCheck"
-  },
-  {
     id: "corporate-design",
-    number: "02",
+    number: "01",
     title: "Corporate Design Solutions",
     heroHeadlineTop: "BUSINESS & ENTERPRISE",
     heroHeadlineMain: "CORPORATE DESIGN SOLUTIONS",
@@ -144,7 +115,7 @@ export const CORE_SERVICES: ServiceItem[] = [
   },
   {
     id: "logo-brand-identity",
-    number: "03",
+    number: "02",
     title: "Logo Design & Brand Identity",
     heroHeadlineTop: "MEMORABLE & ICONIC",
     heroHeadlineMain: "LOGO DESIGN & BRAND IDENTITY",
@@ -197,7 +168,7 @@ export const CORE_SERVICES: ServiceItem[] = [
   },
   {
     id: "branding-marketing",
-    number: "04",
+    number: "03",
     title: "Branding & Marketing Design",
     heroHeadlineTop: "HIGH IMPACT & ENGAGING",
     heroHeadlineMain: "BRANDING & MARKETING DESIGN",
@@ -249,15 +220,15 @@ export const CORE_SERVICES: ServiceItem[] = [
   },
   {
     id: "print-design",
-    number: "05",
+    number: "04",
     title: "Print Design",
     heroHeadlineTop: "TACTILE & PRESS READY",
     heroHeadlineMain: "PRINT DESIGN MASTERY",
     tagline: "High-quality print designs created with attention to detail",
     description:
       "Business cards & corporate stationery, brochures, flyers & leaflets, posters, banners & roll-ups, magazine & catalogue design, and premium packaging & label design.",
-    image: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&w=1200&q=80",
-    imageAlt: "Luxury paper stock, offset print production, and catalog design",
+    image: "/print-design.jpg",
+    imageAlt: "Open editorial print magazine and catalogue layout design",
     deliverables: [
       "Business Cards & Corporate Stationery",
       "Brochures, Flyers & Leaflets",
@@ -302,15 +273,15 @@ export const CORE_SERVICES: ServiceItem[] = [
   },
   {
     id: "digital-social-media",
-    number: "06",
+    number: "05",
     title: "Digital & Social Media Design",
     heroHeadlineTop: "MODERN & HIGH CONVERTING",
     heroHeadlineMain: "DIGITAL & SOCIAL MEDIA DESIGN",
     tagline: "Creative digital designs optimised for online platforms",
     description:
       "Social media posts & ad creatives, web banners & digital advertisements, presentation & pitch deck design, and high-converting email marketing visuals.",
-    image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=1200&q=80",
-    imageAlt: "Social media marketing visuals, digital display advertising, and UI graphics",
+    image: "/digital-social-media.jpg",
+    imageAlt: "Instagram, Facebook, Messenger, and social media digital marketing visuals",
     deliverables: [
       "Social Media Posts & Ad Creatives",
       "Web Banners & Digital Advertisements",
@@ -397,7 +368,7 @@ export const CREATIVE_PROCESS: ProcessStep[] = [
     number: "02",
     title: "Concept & Exploration",
     description:
-      "Prince explores distinct creative directions, drafting custom vector marks, typographic lockups, and preliminary layouts.",
+      "Our studio explores distinct creative directions, drafting custom vector marks, typographic lockups, and preliminary layouts.",
     deliverables: ["2–3 Distinct Creative Routes", "Contextual Mockups", "Presentation Deck"]
   },
   {
@@ -418,17 +389,71 @@ export const CREATIVE_PROCESS: ProcessStep[] = [
 
 export const TESTIMONIAL: TestimonialItem = {
   quote:
-    "Prince is a designer who genuinely listens. The branding work he produced visibly elevated our business image and drew repeated compliments from our clients and partners.",
-  attribution: "Verified Client",
-  role: "Brand Director",
+    "Great design is never an accident. It is the deliberate convergence of relentless precision, timeless typography, and unwavering purpose.",
+  attribution: "Joozz Designing",
+  role: "Studio Philosophy",
   noteForClient: ""
 };
+
+export const CLIENT_REVIEWS: TestimonialItem[] = [
+  {
+    quote: "We hired Joozz Designing for our complete luxury real estate rebranding. The visual identity, letterpress stationery, and signage mockups they delivered exceeded all our expectations. Exceptional craft and delivery.",
+    attribution: "Marcus Sterling",
+    role: "Client • Managing Director",
+    company: "Apex Architectural & Real Estate (London)",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
+  },
+  {
+    quote: "Our publication needed high-finish editorial layouts and press-ready packaging files on a tight deadline. Joozz handled prepress checks flawlessly. The final printed magazines look world-class.",
+    attribution: "Elena Rostova",
+    role: "Client • Editor-in-Chief",
+    company: "Luxe Living Magazine",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+  },
+  {
+    quote: "From our initial brief to final brand guidelines handover, working with Joozz was seamless. Their custom logo mark and typography system gave our tech startup an immediate edge in investor pitches.",
+    attribution: "David Chen",
+    role: "Client • Co-Founder & CEO",
+    company: "Kinetix Digital Labs",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80"
+  },
+  {
+    quote: "The bespoke menu engineering and gold-foil packaging designs elevated our boutique hotel brand across the UK. Their dedication to tactile paper finishes and color calibration is truly unmatched.",
+    attribution: "Sophia Montgomery",
+    role: "Client • Creative Partner",
+    company: "The Grand Savoy Hospitality",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80"
+  },
+  {
+    quote: "Joozz crafted our complete haute couture campaign lookbook and visual identity. The balance of negative space, bold editorial typography, and print clarity captured our aesthetic vision effortlessly.",
+    attribution: "Julian Vance",
+    role: "Client • Brand Director",
+    company: "Vance & Co. Luxury Apparel",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80"
+  },
+  {
+    quote: "Exceptional speed, direct senior communication, and flawless vector assets. They re-architected our corporate identity and event signage across 3 European summits with zero friction.",
+    attribution: "Amara Ndiaye",
+    role: "Client • Head of Global Brand",
+    company: "Novus Energy Group",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80"
+  }
+];
 
 export const PORTFOLIO_ITEMS: PortfolioItem[] = [
   {
     id: "p1",
     title: "Architectural Identity & Wordmark",
     category: "Logo Design",
+    type: "image",
+    thumbnail: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80",
+    mediaUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80",
     client: "Apex Architecture Studio",
     year: "2024",
     aspectRatio: "portrait",
@@ -439,9 +464,30 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80"
   },
   {
+    id: "r1",
+    title: "Kinetic Brand Identity Motion Showcase",
+    category: "Reels / Motion",
+    type: "video",
+    // TODO(client): provide compressed .mp4 (H.264, under ~20MB) or embed link for Kinetic Brand Identity Motion Showcase
+    thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80",
+    mediaUrl: "/5092427-hd_1920_1080_30fps - Trim.mp4",
+    isEmbed: false,
+    client: "Joozz Motion Lab",
+    year: "2024",
+    aspectRatio: "landscape",
+    description: "Dynamic typographic and brand logo animation exploring modern pacing, vector distortions, and cinematic audio sync.",
+    deliverables: ["1080p Master Reel", "Social 9:16 Cut", "Audio Sync & Sound Design"],
+    placeholderLabel: "Kinetic Typography & Brand Motion",
+    imagePlaceholderColor: "from-amber-950/40 to-zinc-900",
+    imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80"
+  },
+  {
     id: "p2",
     title: "Artisan Coffee Roasters Brand System",
     category: "Branding",
+    type: "image",
+    thumbnail: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1000&q=80",
+    mediaUrl: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1000&q=80",
     client: "Vanguard Coffee Roasters",
     year: "2024",
     aspectRatio: "landscape",
@@ -452,9 +498,30 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     imageUrl: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1000&q=80"
   },
   {
+    id: "r2",
+    title: "Editorial Fashion Lookbook Reel",
+    category: "Reels / Motion",
+    type: "video",
+    // TODO(client): provide compressed .mp4 (H.264, under ~20MB) or embed link for Editorial Fashion Lookbook Reel
+    thumbnail: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80",
+    mediaUrl: "/7598770-hd_1920_1080_30fps - Trim-compressed.mp4",
+    isEmbed: false,
+    client: "Maison Lopez Runway",
+    year: "2024",
+    aspectRatio: "vertical",
+    description: "High-energy vertical reel showcasing campaign art direction, typography supers, and editorial transitions.",
+    deliverables: ["9:16 Instagram Reel", "4K Campaign Master", "Story Highlight Cuts"],
+    placeholderLabel: "Vertical Runway Editorial Motion",
+    imagePlaceholderColor: "from-zinc-900 to-stone-900",
+    imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80"
+  },
+  {
     id: "p3",
     title: "Biennale Exhibition Large Poster Series",
     category: "Brochures & Posters",
+    type: "image",
+    thumbnail: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1000&q=80",
+    mediaUrl: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1000&q=80",
     client: "London Design Biennale",
     year: "2023",
     aspectRatio: "portrait",
@@ -468,6 +535,9 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     id: "p4",
     title: "Executive Foil-Stamped Business Cards",
     category: "Business Cards",
+    type: "image",
+    thumbnail: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1000&q=80",
+    mediaUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1000&q=80",
     client: "Shelton Chambers",
     year: "2024",
     aspectRatio: "square",
@@ -481,6 +551,9 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     id: "p5",
     title: "Editorial Lookbook & Quarterly Journal",
     category: "Magazine Layout",
+    type: "image",
+    thumbnail: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80",
+    mediaUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80",
     client: "Covent Review",
     year: "2023",
     aspectRatio: "landscape",
@@ -494,6 +567,9 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     id: "p6",
     title: "Haute Couture Editorial Campaign",
     category: "Photography",
+    type: "image",
+    thumbnail: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80",
+    mediaUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80",
     client: "Maison Lopez",
     year: "2024",
     aspectRatio: "portrait",
@@ -507,6 +583,9 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     id: "p7",
     title: "Boutique Heritage Typography System",
     category: "Branding",
+    type: "image",
+    thumbnail: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80",
+    mediaUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80",
     client: "St. Clair Heritage Hotel",
     year: "2023",
     aspectRatio: "square",
@@ -520,6 +599,9 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     id: "p8",
     title: "Press-Ready Luxury Product Packaging",
     category: "Brochures & Posters",
+    type: "image",
+    thumbnail: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=80",
+    mediaUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=80",
     client: "Aura Botanical Skincare",
     year: "2024",
     aspectRatio: "landscape",

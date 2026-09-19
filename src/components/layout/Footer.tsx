@@ -64,8 +64,7 @@ export const Footer: React.FC = () => {
               </div>
             </Link>
             <p className="text-foreground-muted text-sm leading-relaxed max-w-xs">
-              Independent graphic design, brand architecture, and visual storytelling by{' '}
-              <span className="text-foreground">Prince Srileenj Lopez</span>.
+              Independent graphic design, brand architecture, and visual storytelling.
               Chelmsford & London, United Kingdom.
             </p>
             <div className="flex items-center gap-2 text-[11px] font-mono text-foreground-subtle">

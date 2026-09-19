@@ -15,28 +15,12 @@ const NAV_LINKS = [
 export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [ukTime, setUkTime] = useState('');
   const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 30);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Live UK clock
-  useEffect(() => {
-    const tick = () => {
-      setUkTime(new Date().toLocaleTimeString('en-GB', {
-        timeZone: 'Europe/London',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }));
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
   }, []);
 
   useEffect(() => { setMobileMenuOpen(false); }, [location]);
@@ -71,13 +55,6 @@ export const Navbar: React.FC = () => {
             </span>
           </div>
         </Link>
-
-        {/* Live studio clock */}
-        <div className="hidden xl:flex items-center gap-2 text-[10px] font-mono text-foreground-subtle tracking-widest">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>UK</span>
-          <span className="text-brand-amber font-medium">{ukTime || '--:--:--'}</span>
-        </div>
 
         {/* Desktop nav — pill container with Services dropdown */}
         <nav className="hidden md:flex items-center glass rounded-full px-2 py-1.5 gap-0.5">
@@ -125,22 +102,22 @@ export const Navbar: React.FC = () => {
               </svg>
             </NavLink>
 
-            {/* Dropdown Menu */}
-            <div className="absolute top-full left-0 mt-2 w-64 rounded-2xl bg-[#0e0e11] border border-white/10 p-2 shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover/dropdown:opacity-100 group-hover/dropdown:translate-y-0 group-hover/dropdown:pointer-events-auto transition-all duration-300 backdrop-blur-xl z-50">
+            {/* Dropdown Menu — wide with full title display */}
+            <div className="absolute top-full left-0 mt-2 w-80 rounded-2xl bg-[#0e0e12] border border-white/10 p-2 shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover/dropdown:opacity-100 group-hover/dropdown:translate-y-0 group-hover/dropdown:pointer-events-auto transition-all duration-300 backdrop-blur-xl z-50">
               <Link
                 to="/services"
-                className="block px-3 py-2 rounded-xl text-[10px] font-mono tracking-widest text-brand-amber uppercase hover:bg-white/5 transition-colors mb-1 border-b border-white/5"
+                className="block px-3.5 py-2.5 rounded-xl text-[11px] font-mono tracking-widest text-brand-amber uppercase hover:bg-brand-amber/10 transition-colors mb-1 border-b border-white/5 font-semibold"
               >
-                // View All 6 Services →
+                View All 5 Services →
               </Link>
               {CORE_SERVICES.map((srv) => (
                 <Link
                   key={srv.id}
                   to={`/services/${srv.id}`}
-                  className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono text-foreground-muted hover:text-foreground hover:bg-white/5 transition-all group/item"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-mono text-foreground-muted hover:text-brand-amber hover:bg-white/[0.04] transition-all group/item"
                 >
-                  <span className="truncate">{srv.title}</span>
-                  <span className="text-[10px] text-brand-amber/40 group-hover/item:text-brand-amber ml-2 font-semibold">{srv.number}</span>
+                  <span className="whitespace-normal leading-tight">{srv.title}</span>
+                  <span className="text-[10px] text-brand-amber/50 group-hover/item:text-brand-amber ml-2 font-semibold shrink-0">{srv.number}</span>
                 </Link>
               ))}
             </div>
@@ -202,51 +179,55 @@ export const Navbar: React.FC = () => {
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }}
-            animate={{ clipPath: 'inset(0 0 0% 0)', opacity: 1 }}
-            exit={{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }}
-            transition={{ duration: 0.5, ease: [0.76, 0, 0.24, 1] }}
-            className="fixed inset-0 bg-[#050505] z-30 md:hidden flex flex-col justify-between px-8 py-24"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 w-screen h-screen bg-[#060608] z-40 md:hidden flex flex-col justify-between px-7 pt-28 pb-10 overflow-y-auto"
+            style={{ overscrollBehavior: 'contain' }}
           >
-            <nav className="flex flex-col gap-0">
+            {/* Nav list — Clean full pages view */}
+            <nav className="flex flex-col w-full divide-y divide-white/[0.08] my-auto">
               {NAV_LINKS.map((link, idx) => (
                 <motion.div
                   key={link.path}
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 + idx * 0.07, duration: 0.4 }}
-                  className="border-b border-white/5"
+                  transition={{ delay: 0.04 + idx * 0.04, duration: 0.25 }}
                 >
                   <NavLink
                     to={link.path}
+                    onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center justify-between py-5 text-3xl font-editorial font-thin ${
-                        isActive ? 'text-brand-amber italic' : 'text-foreground'
+                      `flex items-center justify-between py-4 text-2xl sm:text-3xl font-editorial tracking-wide transition-colors ${
+                        isActive ? 'text-brand-amber font-semibold italic' : 'text-foreground hover:text-brand-amber'
                       }`
                     }
                   >
                     <span>{link.name}</span>
-                    <span className="text-sm font-mono text-foreground-subtle opacity-40">0{idx + 1}</span>
+                    <span className="text-xs font-mono text-foreground-subtle opacity-50">0{idx + 1}</span>
                   </NavLink>
                 </motion.div>
               ))}
             </nav>
 
+            {/* Bottom contact info + button */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="space-y-5"
+              transition={{ delay: 0.25 }}
+              className="space-y-4 pt-4 shrink-0 border-t border-white/[0.08]"
             >
-              <div className="border-t border-white/5 pt-5">
-                <div className="text-[11px] font-mono text-foreground-subtle mb-2">Direct UK Line:</div>
+              <div>
+                <div className="text-[10px] font-mono uppercase tracking-widest text-foreground-subtle mb-1">Direct UK Line:</div>
                 <a href={`tel:${STUDIO_INFO.phoneUK}`} className="text-brand-amber font-mono text-sm">
                   {STUDIO_INFO.phoneUK}
                 </a>
               </div>
               <Link
                 to="/contact"
-                className="w-full btn-amber justify-center text-sm"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full btn-amber justify-center text-xs tracking-widest uppercase py-3"
               >
                 Request a Proposal
               </Link>

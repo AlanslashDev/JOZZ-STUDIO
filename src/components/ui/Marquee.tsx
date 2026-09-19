@@ -6,17 +6,17 @@ interface MarqueeProps {
 }
 
 export const Marquee: React.FC<MarqueeProps> = ({ className = '' }) => {
-  const row1 = [...MARQUEE_KEYWORDS, ...MARQUEE_KEYWORDS, ...MARQUEE_KEYWORDS];
-  const row2 = [...MARQUEE_KEYWORDS, ...MARQUEE_KEYWORDS, ...MARQUEE_KEYWORDS];
+  const row1 = [...MARQUEE_KEYWORDS, ...MARQUEE_KEYWORDS, ...MARQUEE_KEYWORDS, ...MARQUEE_KEYWORDS];
+  const row2 = [...MARQUEE_KEYWORDS, ...MARQUEE_KEYWORDS, ...MARQUEE_KEYWORDS, ...MARQUEE_KEYWORDS];
 
   return (
-    <div className={`w-full overflow-hidden bg-surface-1 py-5 space-y-3 ${className}`}>
-      {/* Row 1: Left → solid text */}
+    <div className={`w-full overflow-hidden bg-surface-1 py-6 space-y-3.5 border-y border-white/[0.04] ${className}`}>
+      {/* Row 1: Left high-speed track */}
       <div className="marquee-wrap">
-        <div className="inline-flex items-center gap-10 animate-marquee-left hover:[animation-play-state:paused]">
+        <div className="animate-marquee-track-left items-center gap-10 hover:[animation-play-state:paused] shrink-0">
           {row1.map((kw, i) => (
             <div key={`r1-${i}`} className="inline-flex items-center gap-10 shrink-0">
-              <span className="font-display text-3xl md:text-5xl lg:text-6xl font-bold uppercase tracking-widest text-foreground/70 whitespace-nowrap">
+              <span className="font-display text-2xl sm:text-4xl md:text-5xl font-bold uppercase tracking-wider text-foreground/75 whitespace-nowrap">
                 {kw}
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-brand-amber/50 shrink-0" />
@@ -25,21 +25,21 @@ export const Marquee: React.FC<MarqueeProps> = ({ className = '' }) => {
         </div>
       </div>
 
-      {/* Row 2: Right → hollow outline text */}
+      {/* Row 2: Right high-speed track */}
       <div className="marquee-wrap">
-        <div className="inline-flex items-center gap-10 animate-marquee-right hover:[animation-play-state:paused]">
+        <div className="animate-marquee-track-right items-center gap-10 hover:[animation-play-state:paused] shrink-0">
           {row2.map((kw, i) => (
             <div key={`r2-${i}`} className="inline-flex items-center gap-10 shrink-0">
               <span
-                className="font-display text-3xl md:text-5xl lg:text-6xl font-bold uppercase tracking-widest whitespace-nowrap"
+                className="font-display text-2xl sm:text-4xl md:text-5xl font-bold uppercase tracking-wider whitespace-nowrap"
                 style={{
-                  WebkitTextStroke: '1.5px rgba(232, 166, 76, 0.25)',
+                  WebkitTextStroke: '1px rgba(232, 166, 76, 0.35)',
                   color: 'transparent',
                 }}
               >
                 {kw}
               </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-amber/20 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-amber/25 shrink-0" />
             </div>
           ))}
         </div>

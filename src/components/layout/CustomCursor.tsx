@@ -48,13 +48,13 @@ export const CustomCursor: React.FC = () => {
     <>
       {/* Dot */}
       <motion.div
-        className="fixed top-0 left-0 rounded-full bg-brand-amber pointer-events-none z-[9998] hidden md:block"
+        className="fixed top-0 left-0 rounded-full bg-white pointer-events-none z-[9998] hidden md:block"
         animate={{
           x: pos.x - 4,
           y: pos.y - 4,
           width: cursorState === 'view' ? 0 : 8,
           height: cursorState === 'view' ? 0 : 8,
-          opacity: cursorState === 'view' ? 0 : 1,
+          opacity: cursorState === 'view' ? 0 : 0.9,
         }}
         transition={{ type: 'spring', stiffness: 700, damping: 40, mass: 0.05 }}
       />
@@ -69,21 +69,16 @@ export const CustomCursor: React.FC = () => {
           height: size,
           backgroundColor:
             cursorState === 'view'
-              ? 'rgba(232, 166, 76, 0.95)'
+              ? 'rgba(255, 255, 255, 0.15)'
               : 'transparent',
-          borderColor:
-            cursorState === 'hover'
-              ? 'rgba(232, 166, 76, 0.9)'
-              : cursorState === 'view'
-              ? 'rgba(232, 166, 76, 1)'
-              : 'rgba(255, 255, 255, 0.25)',
+          borderColor: 'rgba(255, 255, 255, 0.35)',
           borderWidth: 1,
           borderStyle: 'solid',
         }}
         transition={{ type: 'spring', stiffness: 220, damping: 22, mass: 0.15 }}
       >
         {cursorState === 'view' && (
-          <span className="text-[10px] font-mono font-bold tracking-wider text-background uppercase no-select">
+          <span className="text-[10px] font-mono font-bold tracking-wider text-white uppercase no-select">
             VIEW
           </span>
         )}

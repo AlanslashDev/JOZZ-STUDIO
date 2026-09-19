@@ -22,8 +22,7 @@ import {
   BookOpen,
   ArrowRight
 } from 'lucide-react';
-import { STUDIO_INFO, CREATIVE_PROCESS, STATS } from '../data/content';
-import { InteractiveTypePlayground } from '../components/ui/InteractiveTypePlayground';
+import { STUDIO_INFO, CREATIVE_PROCESS, STATS, PRODUCTION_TEAM } from '../data/content';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 
 const TOOLS_OF_CRAFT = [
@@ -96,7 +95,7 @@ const MANIFESTO_POINTS = [
 
 export const AboutPage: React.FC = () => {
   return (
-    <div className="pt-32 pb-24 max-w-7xl mx-auto px-8 sm:px-10">
+    <div className="pt-24 sm:pt-32 pb-24 max-w-7xl mx-auto px-5 sm:px-10">
       {/* 1. HERO / INTRO */}
       <section className="mb-24">
         <ScrollReveal direction="up" delay={0.1}>
@@ -128,29 +127,16 @@ export const AboutPage: React.FC = () => {
           {/* Visual Column / Founder Slot */}
           <div className="lg:col-span-5">
             <ScrollReveal direction="right" delay={0.2}>
-              <div className="relative aspect-[4/5] rounded-3xl surface-card p-10 text-center flex flex-col items-center justify-center group overflow-hidden spotlight-card">
-                <div className="w-24 h-24 rounded-2xl bg-surface-2 border border-brand-amber/30 text-brand-amber flex items-center justify-center mb-6 shadow-inner">
-                  <User className="w-12 h-12" />
-                </div>
-                <h3 className="font-editorial text-2xl text-foreground font-semibold mb-1">
-                  {STUDIO_INFO.founder}
-                </h3>
-                <p className="text-xs uppercase font-mono tracking-widest text-brand-amber mb-4">
-                  Founder & Principal Designer
-                </p>
-                <div className="px-3.5 py-1.5 bg-black/50 rounded-full border border-white/5 text-[11px] font-mono text-foreground-subtle">
-                  Creative Direction & Visual Systems
-                </div>
+              <div className="relative aspect-[4/5] rounded-3xl surface-card overflow-hidden group spotlight-card border border-white/10 shadow-2xl">
+                {/* Full Bleed Image Filling the Entire Box Edge-to-Edge */}
+                <img
+                  src="/founder-workspace.jpg"
+                  alt="Joozz Designing — Studio Workspace & Setup"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                />
 
-                <div className="mt-8 pt-6 border-t border-white/5 w-full flex items-center justify-between text-xs text-foreground-muted">
-                  <span className="flex items-center gap-1.5 font-mono">
-                    <MapPin className="w-3.5 h-3.5 text-brand-coral" /> Chelmsford, Essex, UK
-                  </span>
-                  <span className="font-mono text-brand-amber">14+ Yrs Exp</span>
-                </div>
-
-                <div className="bracket-tl" />
-                <div className="bracket-br" />
+                <div className="bracket-tl z-20" />
+                <div className="bracket-br z-20" />
               </div>
             </ScrollReveal>
           </div>
@@ -159,7 +145,7 @@ export const AboutPage: React.FC = () => {
           <div className="lg:col-span-7 space-y-8">
             <div>
               <span className="text-[0.6rem] font-mono uppercase tracking-[0.5em] text-brand-amber block mb-3">
-                01 // THE STORY
+                01 THE STORY
               </span>
               <h2 className="text-display-lg uppercase font-thin text-foreground">
                 14+ Years of <span className="text-gradient-gold">Design Craft & Purpose.</span>
@@ -199,7 +185,7 @@ export const AboutPage: React.FC = () => {
       <section className="py-28">
         <div className="mb-14">
           <span className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber block mb-3">
-            02 // DESIGN MANIFESTO
+            02 DESIGN MANIFESTO
           </span>
           <h2 className="text-display-lg uppercase font-thin text-foreground">
             The core principles that <span className="italic text-gradient-gold">guide our studio.</span>
@@ -212,9 +198,9 @@ export const AboutPage: React.FC = () => {
               <div className="p-8 rounded-2xl surface-card spotlight-card h-full flex flex-col justify-between group">
                 <div>
                   <span className="font-mono text-xs text-brand-amber font-semibold block mb-4">
-                    // PRINCIPLE {point.number}
+                    PRINCIPLE {point.number}
                   </span>
-                  <h3 className="font-editorial text-xl font-medium text-foreground mb-3 group-hover:text-brand-amber transition-colors">
+                  <h3 className="font-display font-bold text-lg uppercase tracking-wide text-foreground mb-3 group-hover:text-brand-amber transition-colors">
                     {point.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-foreground-muted leading-relaxed font-light">
@@ -233,7 +219,7 @@ export const AboutPage: React.FC = () => {
       <section className="py-24 border-y border-white/[0.05]">
         <div className="mb-14">
           <span className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber block mb-3">
-            03 // TOOLS OF THE TRADE
+            03 TOOLS OF THE TRADE
           </span>
           <h2 className="text-display-lg uppercase font-thin text-foreground">
             Deep mastery in <span className="italic text-gradient-gold">Adobe Creative Suite & prepress.</span>
@@ -254,7 +240,7 @@ export const AboutPage: React.FC = () => {
                       Craft Standard
                     </span>
                   </div>
-                  <h4 className="font-editorial text-lg font-medium text-foreground group-hover:text-brand-amber transition-colors">
+                  <h4 className="font-display font-bold text-base uppercase tracking-wide text-foreground group-hover:text-brand-amber transition-colors">
                     {tool.name}
                   </h4>
                   <span className="text-xs font-mono text-brand-amber block">
@@ -272,16 +258,11 @@ export const AboutPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4.5 INTERACTIVE TYPE LABORATORY */}
-      <section className="py-24">
-        <InteractiveTypePlayground />
-      </section>
-
       {/* 5. FOUR-STEP PROCESS */}
       <section className="py-24 border-t border-white/[0.05]">
         <div className="mb-14">
           <span className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber block mb-3">
-            04 // CREATIVE PROCESS
+            04 CREATIVE PROCESS
           </span>
           <h2 className="text-display-lg uppercase font-thin text-foreground">
             From initial spark to <span className="italic text-gradient-gold">press-ready delivery.</span>
@@ -296,7 +277,7 @@ export const AboutPage: React.FC = () => {
                   <span className="font-mono text-xs text-brand-amber font-semibold block mb-4">
                     PHASE {proc.number}
                   </span>
-                  <h3 className="font-editorial text-2xl font-medium text-foreground mb-3 group-hover:text-brand-amber transition-colors">
+                  <h3 className="font-display font-bold text-lg sm:text-xl uppercase tracking-wider text-foreground mb-3 group-hover:text-brand-amber transition-colors">
                     {proc.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-foreground-muted leading-relaxed font-light mb-6">
@@ -321,7 +302,7 @@ export const AboutPage: React.FC = () => {
             <span className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber block mb-3">
               Principal Studio Hub
             </span>
-            <h4 className="font-editorial text-xl font-medium text-foreground mb-2">Chelmsford, Essex & London</h4>
+            <h4 className="font-display font-bold text-lg uppercase tracking-wider text-foreground mb-2">Chelmsford, Essex & London</h4>
             <p className="text-xs text-foreground-muted font-mono leading-relaxed mb-4">
               {STUDIO_INFO.registeredOffice}
             </p>
@@ -337,7 +318,7 @@ export const AboutPage: React.FC = () => {
             <span className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber block mb-3">
               International Line
             </span>
-            <h4 className="font-editorial text-xl font-medium text-foreground mb-2">India Coordination Office</h4>
+            <h4 className="font-display font-bold text-lg uppercase tracking-wider text-foreground mb-2">India Coordination Office</h4>
             <p className="text-xs text-foreground-muted font-mono leading-relaxed mb-4">
               Direct remote line for overseas commissions and agile production cycles.
             </p>
@@ -351,12 +332,64 @@ export const AboutPage: React.FC = () => {
         </div>
       </section>
 
+      {/* 7. PRODUCTION TEAM (The People) */}
+      <section className="py-24 sm:py-32 border-t border-white/[0.05]">
+        <div className="text-center max-w-2xl mx-auto mb-16 sm:mb-20">
+          <ScrollReveal direction="up">
+            <span className="text-[0.65rem] font-mono uppercase tracking-[0.45em] text-brand-amber block mb-3 font-semibold">
+              THE PEOPLE
+            </span>
+          </ScrollReveal>
+          <ScrollReveal direction="up" delay={0.1}>
+            <h2 className="text-display-xl uppercase text-foreground leading-tight tracking-wide">
+              PRODUCTION TEAM
+            </h2>
+          </ScrollReveal>
+          <ScrollReveal direction="up" delay={0.2}>
+            <p className="text-xs sm:text-sm text-foreground-muted leading-relaxed font-light mt-4">
+              Exceptional talent is the cornerstone of everything we create. Our team brings decades of combined experience in multimedia production.
+            </p>
+          </ScrollReveal>
+        </div>
+
+        {/* 5-Member Team Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+          {PRODUCTION_TEAM.map((member, idx) => (
+            <ScrollReveal key={member.name} direction="up" delay={idx * 0.08}>
+              <div className="group relative rounded-2xl bg-[#0d0d10] border border-white/[0.08] hover:border-brand-amber/40 transition-all duration-500 overflow-hidden flex flex-col items-center shadow-xl">
+                {/* Portrait container */}
+                <div className="w-full aspect-[4/5] overflow-hidden bg-black/60 relative flex items-center justify-center">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-full h-full object-cover object-center grayscale contrast-110 group-hover:scale-105 group-hover:grayscale-0 transition-all duration-700"
+                  />
+                  {/* Subtle dark vignette */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-80" />
+                </div>
+
+                {/* Name Label Bar */}
+                <div className="w-full py-3.5 sm:py-4 px-2 bg-[#08080a] border-t border-white/[0.06] text-center">
+                  <h3 className="font-display font-bold text-sm sm:text-base uppercase tracking-[0.2em] text-foreground group-hover:text-brand-amber transition-colors duration-300">
+                    {member.name}
+                  </h3>
+                </div>
+
+                {/* Corner brackets */}
+                <div className="bracket-tl" />
+                <div className="bracket-br" />
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="pt-20 text-center space-y-6">
         <h2 className="text-display-lg uppercase font-thin text-foreground">
-          Ready to elevate your brand with <span className="text-gradient-gold">Prince Srileenj Lopez</span>?
+          Ready to elevate your brand with <span className="text-gradient-gold">Joozz Designing</span>?
         </h2>
-        <div className="flex justify-center gap-4">
+        <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4">
           <Link to="/contact" className="btn-amber">
             Inquire for Availability <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>

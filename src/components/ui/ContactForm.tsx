@@ -16,6 +16,7 @@ interface FormState {
 interface FormErrors {
   name?: string;
   email?: string;
+  phone?: string;
   service?: string;
   message?: string;
 }
@@ -32,22 +33,65 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Strict email regex matching valid standard TLDs
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  // Optional international phone format regex (+, digits, spaces, hyphens, min 7 digits)
+  const phoneRegex = /^(\+?\d{1,4}[-.\s]?)?(\(?\d{2,5}\)?[-.\s]?)?\d{3,5}[-.\s]?\d{3,5}$/;
+
+  const validateField = (name: string, value: string): string | undefined => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) return 'Your name is required';
+        if (value.trim().length < 2) return 'Name must be at least 2 characters';
+        return undefined;
+      case 'email':
+        if (!value.trim()) return 'Email address is required';
+        if (!emailRegex.test(value.trim())) return 'Please enter a valid email address (e.g. name@domain.com)';
+        return undefined;
+      case 'phone':
+        if (value.trim() && !phoneRegex.test(value.trim())) {
+          return 'Please enter a valid phone or WhatsApp number';
+        }
+        return undefined;
+      case 'service':
+        if (!value) return 'Please select a project type';
+        return undefined;
+      case 'message':
+        if (!value.trim()) return 'Please provide your project details';
+        if (value.trim().length < 10) return 'Please provide at least 10 characters explaining your requirements';
+        return undefined;
+      default:
+        return undefined;
+    }
+  };
+
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Please provide your name';
-    if (!formData.email.trim()) {
-      newErrors.email = 'Please provide your email address';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-    if (!formData.service) newErrors.service = 'Please select a project type';
-    if (!formData.message.trim()) newErrors.message = 'Please provide a brief description of your project';
+    const nameErr = validateField('name', formData.name);
+    const emailErr = validateField('email', formData.email);
+    const phoneErr = validateField('phone', formData.phone);
+    const serviceErr = validateField('service', formData.service);
+    const msgErr = validateField('message', formData.message);
+
+    if (nameErr) newErrors.name = nameErr;
+    if (emailErr) newErrors.email = emailErr;
+    if (phoneErr) newErrors.phone = phoneErr;
+    if (serviceErr) newErrors.service = serviceErr;
+    if (msgErr) newErrors.message = msgErr;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const errorMsg = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: errorMsg }));
   };
 
   const handleChange = (
@@ -55,8 +99,9 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    if (touched[name]) {
+      const errorMsg = validateField(name, value);
+      setErrors((prev) => ({ ...prev, [name]: errorMsg }));
     }
   };
 
@@ -89,7 +134,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             Inquiry Received
           </h3>
           <p className="text-foreground-muted text-sm max-w-md mx-auto leading-relaxed">
-            Thank you, <span className="text-foreground font-semibold">{formData.name}</span>. Prince will review your project requirements and respond within 24–48 hours with initial thoughts and availability.
+            Thank you, <span className="text-foreground font-semibold">{formData.name}</span>. Our studio will review your project requirements and respond within 24–48 hours with initial thoughts and availability.
           </p>
         </div>
         <div className="pt-4">
@@ -131,6 +176,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             placeholder="e.g. Eleanor Vance"
             value={formData.name}
             onChange={handleChange}
+            onBlur={handleBlur}
             className={`w-full px-4 py-3.5 rounded-xl bg-background border ${
               errors.name ? 'border-brand-coral' : 'border-background-border focus:border-brand-amber'
             } text-foreground text-sm placeholder:text-foreground-subtle focus:outline-none transition-colors`}
@@ -153,6 +199,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             placeholder="e.g. eleanor@studio.com"
             value={formData.email}
             onChange={handleChange}
+            onBlur={handleBlur}
             className={`w-full px-4 py-3.5 rounded-xl bg-background border ${
               errors.email ? 'border-brand-coral' : 'border-background-border focus:border-brand-amber'
             } text-foreground text-sm placeholder:text-foreground-subtle focus:outline-none transition-colors`}
@@ -178,8 +225,16 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             placeholder="+44 7000 000000"
             value={formData.phone}
             onChange={handleChange}
-            className="w-full px-4 py-3.5 rounded-xl bg-background border border-background-border focus:border-brand-amber text-foreground text-sm placeholder:text-foreground-subtle focus:outline-none transition-colors"
+            onBlur={handleBlur}
+            className={`w-full px-4 py-3.5 rounded-xl bg-background border ${
+              errors.phone ? 'border-brand-coral' : 'border-background-border focus:border-brand-amber'
+            } text-foreground text-sm placeholder:text-foreground-subtle focus:outline-none transition-colors`}
           />
+          {errors.phone && (
+            <p className="text-[11px] text-brand-coral flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {errors.phone}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -191,6 +246,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             name="service"
             value={formData.service}
             onChange={handleChange}
+            onBlur={handleBlur}
             className="w-full px-4 py-3.5 rounded-xl bg-background border border-background-border focus:border-brand-amber text-foreground text-sm focus:outline-none transition-colors cursor-pointer"
           >
             {CORE_SERVICES.map((srv) => (
@@ -219,6 +275,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             name="budget"
             value={formData.budget}
             onChange={handleChange}
+            onBlur={handleBlur}
             className="w-full px-4 py-3.5 rounded-xl bg-background border border-background-border focus:border-brand-amber text-foreground text-sm focus:outline-none transition-colors cursor-pointer"
           >
             <option value="Under £1,000" className="bg-background-elevated text-foreground">Under £1,000</option>
@@ -237,6 +294,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             name="timeline"
             value={formData.timeline}
             onChange={handleChange}
+            onBlur={handleBlur}
             className="w-full px-4 py-3.5 rounded-xl bg-background border border-background-border focus:border-brand-amber text-foreground text-sm focus:outline-none transition-colors cursor-pointer"
           >
             <option value="Urgent (Within 1-2 Weeks)" className="bg-background-elevated text-foreground">Urgent (Within 1–2 Weeks)</option>
@@ -259,6 +317,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
           placeholder="Tell us about your brand, what deliverables you need, and any specific aesthetic inspirations..."
           value={formData.message}
           onChange={handleChange}
+          onBlur={handleBlur}
           className={`w-full px-4 py-3.5 rounded-xl bg-background border ${
             errors.message ? 'border-brand-coral' : 'border-background-border focus:border-brand-amber'
           } text-foreground text-sm placeholder:text-foreground-subtle focus:outline-none transition-colors resize-none`}
@@ -289,8 +348,8 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
         )}
       </button>
 
-      <p className="text-center text-[11px] text-foreground-subtle">
-        // Direct response from Prince Srileenj Lopez within 24–48 hours. No middle management.
+      <p className="text-[11px] font-mono text-foreground-subtle text-center">
+        Direct response within 24–48 hours. No middle management.
       </p>
     </form>
   );

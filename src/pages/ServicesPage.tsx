@@ -83,7 +83,7 @@ const SERVICE_TIERS = [
 
 export const ServicesPage: React.FC = () => {
   return (
-    <div className="pt-32 pb-24 max-w-7xl mx-auto px-8 sm:px-10">
+    <div className="pt-24 sm:pt-32 pb-24 max-w-7xl mx-auto px-5 sm:px-10">
       {/* 1. HEADER */}
       <section className="mb-24">
         <ScrollReveal direction="up" delay={0.1}>
@@ -111,93 +111,8 @@ export const ServicesPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. ENGAGEMENT TIERS / PACKAGES */}
-      <section className="py-24 border-y border-white/[0.05]">
-        <div className="mb-16">
-          <span className="text-[0.6rem] font-mono uppercase tracking-[0.5em] text-brand-amber block mb-3">
-            02 // CURATED ENGAGEMENTS
-          </span>
-          <h2 className="text-display-lg uppercase font-thin text-foreground">
-            Clear project frameworks <span className="italic text-gradient-gold">with transparent scope.</span>
-          </h2>
-          <p className="text-foreground-muted text-base max-w-2xl mt-4 font-light">
-            Whether you need a standalone trademark or a complete brand universe, we offer structured commission packages with direct designer access.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {SERVICE_TIERS.map((tier, idx) => (
-            <ScrollReveal key={tier.name} direction="up" delay={idx * 0.1}>
-              <div
-                className={`p-8 sm:p-10 rounded-3xl surface-card spotlight-card h-full flex flex-col justify-between group relative overflow-hidden ${
-                  tier.popular ? 'border-brand-amber/40 shadow-2xl bg-[#0e0e11]' : ''
-                }`}
-              >
-                {tier.popular && (
-                  <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-xl bg-brand-amber text-background text-[10px] font-mono font-bold uppercase tracking-widest">
-                    Signature Choice
-                  </div>
-                )}
-
-                <div>
-                  <div className="text-[10px] font-mono tracking-ultra text-brand-amber uppercase mb-3">
-                    {tier.badge}
-                  </div>
-                  <h3 className="font-editorial text-2xl font-medium text-foreground mb-4 group-hover:text-brand-amber transition-colors">
-                    {tier.name}
-                  </h3>
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <span className="font-display text-3xl font-bold text-foreground">
-                      {tier.priceEstimate}
-                    </span>
-                    <span className="text-xs font-mono text-foreground-subtle">est. guideline</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-mono text-brand-amber/80 mb-6">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>{tier.turnaround}</span>
-                  </div>
-
-                  <p className="text-xs text-foreground-muted mb-8 italic">
-                    Ideal for: {tier.idealFor}
-                  </p>
-
-                  <div className="space-y-3 pt-6 border-t border-white/5 mb-8">
-                    <span className="text-[10px] font-mono uppercase tracking-ultra text-foreground-subtle block mb-2">
-                      Included Deliverables:
-                    </span>
-                    {tier.features.map((feat, fIdx) => (
-                      <div key={fIdx} className="flex items-start gap-2.5 text-xs text-foreground-muted">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-brand-amber shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Link
-                    to={`/contact?service=${encodeURIComponent(tier.recommendedService)}`}
-                    className={`w-full py-3.5 rounded-full text-xs font-semibold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
-                      tier.popular
-                        ? 'bg-brand-amber text-background hover:bg-brand-amberHover shadow-lg shadow-brand-amber/20'
-                        : 'surface-card text-foreground hover:border-brand-amber/50 hover:text-brand-amber'
-                    }`}
-                  >
-                    <span>Request Commission</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-
-                <div className="bracket-tl" />
-                <div className="bracket-br" />
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
-
-      {/* 4. PRESS-READY GUARANTEE */}
-      <section className="py-24">
+      {/* 3. PRESS-READY GUARANTEE */}
+      <section className="py-24 border-t border-white/[0.05]">
         <div className="p-10 sm:p-14 rounded-3xl surface-card spotlight-card relative overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8 space-y-4">
@@ -205,7 +120,7 @@ export const ServicesPage: React.FC = () => {
                 <ShieldCheck className="w-4 h-4" />
                 <span>TECHNICAL EXCELLENCE GUARANTEE</span>
               </div>
-              <h3 className="font-editorial text-3xl font-medium text-foreground">
+              <h3 className="font-display font-bold text-2xl sm:text-3xl uppercase tracking-wider text-foreground">
                 100% Press-Ready & Vector Standards
               </h3>
               <p className="text-foreground-muted text-sm sm:text-base leading-relaxed font-light">

@@ -54,8 +54,8 @@ export default {
         ultra: '0.35em',
       },
       animation: {
-        'marquee-left': 'marqueeLeft 40s linear infinite',
-        'marquee-right': 'marqueeRight 40s linear infinite',
+        'marquee-left': 'marqueeLeft 6s linear infinite',
+        'marquee-right': 'marqueeRight 6s linear infinite',
         'float': 'float 6s ease-in-out infinite',
         'fade-up': 'fadeUp 0.7s ease forwards',
         'glow-pulse': 'glowPulse 3s ease-in-out infinite',

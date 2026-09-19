@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -30,7 +30,7 @@ const FAQS = [
   },
   {
     q: 'Do you work with international clients outside the United Kingdom?',
-    a: 'Yes! While based primarily in Chelmsford and London, United Kingdom, Prince maintains a dedicated international line and collaborates with founders and creative directors globally across Europe, North America, and Asia.'
+    a: 'Yes! While based primarily in Chelmsford and London, United Kingdom, our studio maintains a dedicated international line and collaborates with founders and creative directors globally across Europe, North America, and Asia.'
   },
   {
     q: 'Can you liaise directly with my commercial print shop?',
@@ -52,12 +52,12 @@ export const ContactPage: React.FC = () => {
   };
 
   return (
-    <div className="pt-32 pb-24 max-w-7xl mx-auto px-8 sm:px-10">
+    <div className="pt-24 sm:pt-32 pb-24 max-w-7xl mx-auto px-5 sm:px-10">
       {/* 1. HEADER */}
       <section className="mb-20">
         <ScrollReveal direction="up" delay={0.1}>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-brand-amber/10 border border-brand-amber/20 text-[10px] font-mono tracking-ultra uppercase text-brand-amber mb-6">
-            <span>// START A COLLABORATION</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-brand-amber/10 border border-brand-amber/20 text-[0.6rem] font-mono tracking-[0.5em] uppercase text-brand-amber mb-6">
+            <span>START A COLLABORATION</span>
           </div>
         </ScrollReveal>
 
@@ -67,7 +67,7 @@ export const ContactPage: React.FC = () => {
         </h1>
 
         <p className="text-foreground-muted text-lg sm:text-xl max-w-2xl leading-relaxed font-light">
-          Whether you need a full visual identity, high-finish print collateral, or an ongoing creative retainer, Prince will get back to you directly with availability and next steps.
+          Whether you need a full visual identity, high-finish print collateral, or an ongoing creative retainer, our team will get back to you directly with availability and next steps.
         </p>
       </section>
 
@@ -76,7 +76,7 @@ export const ContactPage: React.FC = () => {
         {/* Left Column: Interactive Form */}
         <div className="lg:col-span-7 p-8 sm:p-12 rounded-3xl surface-card spotlight-card shadow-2xl relative">
           <div className="mb-8">
-            <h2 className="font-editorial text-2xl sm:text-3xl font-medium text-foreground mb-2">
+            <h2 className="font-display font-bold text-xl sm:text-2xl uppercase tracking-wider text-foreground mb-2">
               Project Inquiry Form
             </h2>
             <p className="text-xs sm:text-sm text-foreground-muted font-light">
@@ -142,7 +142,7 @@ export const ContactPage: React.FC = () => {
                 <button
                   onClick={() => handleCopy(STUDIO_INFO.phoneUK, 'phoneUK')}
                   className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-foreground-muted hover:text-brand-amber transition-colors shrink-0"
-                  title="Copy phone number"
+                  title="Copy UK line"
                 >
                   {copiedField === 'phoneUK' ? (
                     <Check className="w-4 h-4 text-emerald-400" />
@@ -183,7 +183,7 @@ export const ContactPage: React.FC = () => {
             <div className="p-4 rounded-2xl bg-surface-2 border border-white/5 space-y-2 text-xs">
               <div className="flex items-center gap-2 text-foreground font-semibold">
                 <MapPin className="w-4 h-4 text-brand-coral" />
-                <span>Registered London Office</span>
+                <span className="font-display uppercase tracking-wider text-xs">Registered London Office</span>
               </div>
               <p className="text-foreground-muted font-mono text-[11px] leading-relaxed">
                 {STUDIO_INFO.registeredOffice}
@@ -198,7 +198,7 @@ export const ContactPage: React.FC = () => {
           <div className="p-6 rounded-3xl surface-card space-y-3">
             <div className="flex items-center gap-2 text-xs font-mono text-brand-amber">
               <Clock className="w-4 h-4" />
-              <span>48â€“72 HOUR CONCEPT TURNAROUND</span>
+              <span>48–72 HOUR CONCEPT TURNAROUND</span>
             </div>
             <p className="text-xs text-foreground-muted leading-relaxed font-light">
               We respond to all project inquiries within 24 hours with a custom project proposal and scheduled kickoff date.
@@ -211,7 +211,7 @@ export const ContactPage: React.FC = () => {
       <section className="py-16 border-t border-white/[0.05]">
         <div className="mb-14">
           <span className="text-[0.6rem] font-mono uppercase tracking-[0.5em] text-brand-amber block mb-3">
-            02 // FREQUENTLY ASKED QUESTIONS
+            02 FREQUENTLY ASKED QUESTIONS
           </span>
           <h2 className="text-display-lg uppercase font-thin text-foreground">
             Clear answers on <span className="italic text-gradient-gold">process, timelines & delivery.</span>
@@ -231,7 +231,7 @@ export const ContactPage: React.FC = () => {
                   onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
                   className="w-full p-6 text-left flex items-center justify-between gap-4 group"
                 >
-                  <span className="font-editorial text-lg text-foreground font-medium group-hover:text-brand-amber transition-colors">
+                  <span className="font-display font-semibold text-sm sm:text-base uppercase tracking-wider text-foreground group-hover:text-brand-amber transition-colors">
                     {faq.q}
                   </span>
                   <div className={`w-8 h-8 rounded-full bg-surface-2 flex items-center justify-center text-foreground-muted transition-transform duration-300 ${

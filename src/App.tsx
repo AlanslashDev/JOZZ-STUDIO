@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Lenis from 'lenis';
 import { Navbar } from './components/layout/Navbar';
@@ -13,17 +13,26 @@ import { PortfolioPage } from './pages/PortfolioPage';
 import { ContactPage } from './pages/ContactPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
+// Global Lenis ref so ScrollToTop can reset it
+export const lenisRef: { current: Lenis | null } = { current: null };
+
 // Scroll to top helper on route transition
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Reset Lenis scroll position first (important — prevents it from fighting window.scrollTo)
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { immediate: true });
+    }
+    // Also reset DOM scroll as a fallback
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
 
     // Update document title per route
     const titleMap: Record<string, string> = {
-      '/': 'Joozz Designing — Graphic Design & Brand Identity Studio (Prince Srileenj Lopez)',
-      '/about': 'About Prince Srileenj Lopez — Joozz Designing',
+      '/': 'Joozz Designing — Graphic Design & Brand Identity Studio',
+      '/about': 'About Us — Joozz Designing',
       '/services': 'Disciplines & Services — Joozz Designing',
       '/portfolio': 'Selected Works Archive — Joozz Designing',
       '/contact': 'Inquire & Start a Project — Joozz Designing',
@@ -38,7 +47,7 @@ const ScrollToTop: React.FC = () => {
 export const App: React.FC = () => {
   const [showIntro, setShowIntro] = useState(true);
 
-  // Initialize Lenis smooth scroll
+  // Initialize Lenis smooth scroll and store ref
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
@@ -50,6 +59,8 @@ export const App: React.FC = () => {
       touchMultiplier: 2,
     });
 
+    lenisRef.current = lenis;
+
     function raf(time: number) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -59,6 +70,7 @@ export const App: React.FC = () => {
 
     return () => {
       lenis.destroy();
+      lenisRef.current = null;
     };
   }, []);
 
@@ -70,7 +82,7 @@ export const App: React.FC = () => {
       {/* Noise Texture Overlay */}
       <div className="grain-overlay" />
 
-      {/* Smooth Trailing Magnetic Cursor */}
+      {/* Custom cursor */}
       <CustomCursor />
 
       {/* Scroll restoration */}
