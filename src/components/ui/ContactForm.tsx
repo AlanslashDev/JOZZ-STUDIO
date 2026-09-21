@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { CORE_SERVICES } from '../../data/content';
+import { ApiError, publicApi } from '../../lib/api';
 
 interface FormState {
   name: string;
@@ -36,6 +37,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Strict email regex matching valid standard TLDs
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -110,13 +112,17 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
     if (!validate()) return;
 
     setIsSubmitting(true);
-
-    // Simulated network submit (wire to Formspree/EmailJS endpoint in production)
-    // TODO(client): Swap the simulation with your Formspree endpoint (e.g., fetch('https://formspree.io/f/YOUR_ID', ...))
-    setTimeout(() => {
+    setSubmitError(null);
+    try {
+      await publicApi.submitEnquiry(formData);
       setIsSubmitting(false);
       setIsSuccess(true);
-    }, 900);
+    } catch (error) {
+      setIsSubmitting(false);
+      setSubmitError(error instanceof Error ? error.message : 'We could not send your enquiry. Please try again.');
+      const apiError = error as ApiError;
+      if (apiError.details) setErrors((previous) => ({ ...previous, ...apiError.details }));
+    }
   };
 
   if (isSuccess) {
@@ -351,6 +357,11 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
       <p className="text-[11px] font-mono text-foreground-subtle text-center">
         Direct response within 24–48 hours. No middle management.
       </p>
+      {submitError && (
+        <p role="alert" className="text-xs text-brand-coral text-center">
+          {submitError}
+        </p>
+      )}
     </form>
   );
 };

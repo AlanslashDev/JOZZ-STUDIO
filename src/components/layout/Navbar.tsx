@@ -2,15 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
-import { STUDIO_INFO, CORE_SERVICES } from '../../data/content';
+import { STUDIO_INFO, CORE_SERVICES, NAVIGATION_ITEMS } from '../../data/content';
 
-const NAV_LINKS = [
-  { name: 'Home', path: '/' },
-  { name: 'About', path: '/about' },
-  { name: 'Services', path: '/services' },
-  { name: 'Portfolio', path: '/portfolio' },
-  { name: 'Contact', path: '/contact' },
-];
+const getNavLinks = () => NAVIGATION_ITEMS
+  .filter((item) => item.location === 'header' && item.visible)
+  .map((item) => ({ name: item.label, path: item.url }));
 
 export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -188,7 +184,7 @@ export const Navbar: React.FC = () => {
           >
             {/* Nav list — Clean full pages view */}
             <nav className="flex flex-col w-full divide-y divide-white/[0.08] my-auto">
-              {NAV_LINKS.map((link, idx) => (
+              {getNavLinks().map((link, idx) => (
                 <motion.div
                   key={link.path}
                   initial={{ opacity: 0, x: -16 }}

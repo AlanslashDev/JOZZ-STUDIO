@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Sparkles, ArrowRight, Quote, ChevronDown, Star, ChevronLeft, ChevronRight } from 'lucide-react';
-import { STUDIO_INFO, CORE_SERVICES, STATS, PORTFOLIO_ITEMS, TESTIMONIAL, CLIENT_REVIEWS } from '../data/content';
+import { STUDIO_INFO, CORE_SERVICES, STATS, PORTFOLIO_ITEMS, TESTIMONIAL, CLIENT_REVIEWS, HOME_CONTENT } from '../data/content';
 import { Marquee } from '../components/ui/Marquee';
 import { ServiceCard } from '../components/ui/ServiceCard';
 import { StatCard } from '../components/ui/StatCard';
@@ -31,11 +31,7 @@ function useCounter(target: number, duration = 2000, start = false) {
 
 // â”€â”€â”€ Large Hero Headline with stagger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const HeroTitle: React.FC = () => {
-  const lines = [
-    { text: 'WE DESIGN', gold: false },
-    { text: 'WITH PURPOSE', gold: false, highlight: 'PURPOSE' },
-    { text: '& PRECISION.', gold: false },
-  ];
+  const lines = HOME_CONTENT.heroHeading.split('\n').filter(Boolean).map((text) => ({ text, highlight: text.includes('PURPOSE') ? 'PURPOSE' : undefined }));
 
   return (
     <div className="overflow-hidden">
@@ -56,7 +52,7 @@ const HeroTitle: React.FC = () => {
             >
               {line.highlight ? (
                 <>
-                  WITH{' '}<span className="text-gradient-gold">PURPOSE</span>
+                  {line.text.replace(line.highlight, '')}<span className="text-gradient-gold">{line.highlight}</span>
                 </>
               ) : (
                 line.text
@@ -171,7 +167,7 @@ export const HomePage: React.FC = () => {
               Joozz Designing Studio
             </div>
             <p className="max-w-xs text-xs sm:text-sm text-foreground-muted font-light leading-relaxed">
-              Boutique graphic design studio crafting distinctive brand identities, editorial layouts, and press-ready print media.
+              {HOME_CONTENT.heroSubheading}
             </p>
           </motion.div>
 
@@ -182,10 +178,10 @@ export const HomePage: React.FC = () => {
             className="mt-8 sm:mt-10 flex flex-wrap items-center gap-3 sm:gap-4"
           >
             <Link 
-              to="/portfolio" 
+              to={HOME_CONTENT.ctaLink}
               className="btn-amber text-[10px] sm:text-xs py-2 sm:py-2.5 px-5 sm:px-6 whitespace-nowrap inline-flex items-center gap-2"
             >
-              <span>VIEW WORK</span> <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>{HOME_CONTENT.ctaText}</span> <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </Link>
             <Link 
               to="/contact" 

@@ -22,7 +22,7 @@ import {
   BookOpen,
   ArrowRight
 } from 'lucide-react';
-import { STUDIO_INFO, CREATIVE_PROCESS, STATS, PRODUCTION_TEAM } from '../data/content';
+import { ABOUT_CONTENT, STUDIO_INFO, CREATIVE_PROCESS, STATS, PRODUCTION_TEAM } from '../data/content';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 
 const TOOLS_OF_CRAFT = [
@@ -105,19 +105,11 @@ export const AboutPage: React.FC = () => {
         </ScrollReveal>
 
         <h1 className="text-display-xl uppercase text-foreground leading-[0.98] max-w-4xl mb-8">
-          ABOUT <span className="text-gradient-gold">US</span>
+          {ABOUT_CONTENT.heading}
         </h1>
 
-        <div className="space-y-6 text-foreground-muted text-base sm:text-lg max-w-4xl leading-relaxed font-light">
-          <p>
-            <strong className="text-foreground font-semibold">Joozz Designing</strong> is a creative graphic design studio dedicated to building strong and memorable visual identities. With over 14 years of professional experience, we specialise in logo design, branding, and high-quality print and digital design solutions.
-          </p>
-          <p>
-            We create thoughtful, original designs that help businesses stand out and communicate their message clearly. Our services include logo design, brand identity, magazines, brochures, business cards, posters, and other marketing materials—crafted with creativity, precision, and attention to detail.
-          </p>
-          <p>
-            At Joozz Designing, we believe great design is more than just visuals; it's about telling your story, connecting with your audience, and leaving a lasting impression.
-          </p>
+        <div className="space-y-6 text-foreground-muted text-base sm:text-lg max-w-4xl leading-relaxed font-light whitespace-pre-line">
+          {ABOUT_CONTENT.introduction}
         </div>
       </section>
 

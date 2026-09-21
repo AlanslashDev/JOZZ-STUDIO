@@ -1,28 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Mail, Phone, MapPin, ArrowUp } from 'lucide-react';
-import { STUDIO_INFO } from '../../data/content';
+import { NAVIGATION_ITEMS, STUDIO_INFO } from '../../data/content';
 
-const NAV_COLS = [
+const getNavColumns = () => [
   {
     title: 'Studio',
-    links: [
-      { label: 'Home', path: '/' },
-      { label: 'About Us', path: '/about' },
-      { label: 'Services', path: '/services' },
-      { label: 'Portfolio', path: '/portfolio' },
-      { label: 'Contact', path: '/contact' },
-    ],
+    links: NAVIGATION_ITEMS.filter((item) => item.location === 'footer_studio' && item.visible).map((item) => ({ label: item.label, path: item.url })),
   },
   {
     title: 'Disciplines',
-    links: [
-      { label: 'Logo Design', path: '/services' },
-      { label: 'Brand Identity', path: '/services' },
-      { label: 'Brochure & Print', path: '/services' },
-      { label: 'Business Cards', path: '/services' },
-      { label: 'Fashion Photography', path: '/services' },
-    ],
+    links: NAVIGATION_ITEMS.filter((item) => item.location === 'footer_disciplines' && item.visible).map((item) => ({ label: item.label, path: item.url })),
   },
 ];
 
@@ -74,7 +62,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Nav columns */}
-          {NAV_COLS.map((col) => (
+          {getNavColumns().map((col) => (
             <div key={col.title} className="md:col-span-2 space-y-5">
               <h4 className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber">{col.title}</h4>
               <ul className="space-y-3">

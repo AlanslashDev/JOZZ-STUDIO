@@ -612,3 +612,87 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     imageUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=80"
   }
 ];
+
+export const FAQS = [
+  { q: 'What is the typical turnaround time for a project?', a: 'Initial conceptual exploration (2–3 distinct routes) is presented within 48 to 72 hours for brand marks and logo design. Full brand universe packages and multi-page editorial publications typically take 2 to 3 weeks with dedicated feedback milestones.' },
+  { q: 'What deliverables and file formats are provided upon completion?', a: 'You receive a complete master archive including scalable vector files (.AI, .EPS, .SVG, .PDF), transparent web formats (.PNG, .WebP), and press-ready CMYK PDFs with crop marks, bleeds, and Pantone spot specifications.' },
+  { q: 'Do you work with international clients outside the United Kingdom?', a: 'Yes! While based primarily in Chelmsford and London, United Kingdom, our studio maintains a dedicated international line and collaborates with founders and creative directors globally across Europe, North America, and Asia.' },
+  { q: 'Can you liaise directly with my commercial print shop?', a: 'Absolutely. We regularly coordinate directly with commercial printers to verify paper stocks, spot UV / foil debossing die-lines, and press proofs to guarantee zero production surprises.' }
+];
+
+export const NAVIGATION_ITEMS = [
+  { location: 'header', label: 'Home', url: '/', visible: true },
+  { location: 'header', label: 'About', url: '/about', visible: true },
+  { location: 'header', label: 'Services', url: '/services', visible: true },
+  { location: 'header', label: 'Portfolio', url: '/portfolio', visible: true },
+  { location: 'header', label: 'Contact', url: '/contact', visible: true },
+  { location: 'footer_studio', label: 'Home', url: '/', visible: true },
+  { location: 'footer_studio', label: 'About Us', url: '/about', visible: true },
+  { location: 'footer_studio', label: 'Services', url: '/services', visible: true },
+  { location: 'footer_studio', label: 'Portfolio', url: '/portfolio', visible: true },
+  { location: 'footer_studio', label: 'Contact', url: '/contact', visible: true },
+  { location: 'footer_disciplines', label: 'Logo Design', url: '/services', visible: true },
+  { location: 'footer_disciplines', label: 'Brand Identity', url: '/services', visible: true },
+  { location: 'footer_disciplines', label: 'Brochure & Print', url: '/services', visible: true },
+  { location: 'footer_disciplines', label: 'Business Cards', url: '/services', visible: true },
+  { location: 'footer_disciplines', label: 'Fashion Photography', url: '/services', visible: true }
+];
+
+export const HOME_CONTENT = {
+  heroHeading: 'WE DESIGN\nWITH PURPOSE\n& PRECISION.',
+  heroSubheading: 'Boutique graphic design studio crafting distinctive brand identities, editorial layouts, and press-ready print media.',
+  ctaText: 'VIEW WORK',
+  ctaLink: '/portfolio',
+  introduction: 'Independent craft with direct collaboration.',
+  finalCta: 'Let’s build something remarkable.'
+};
+
+export const ABOUT_CONTENT = {
+  heading: 'ABOUT US',
+  introduction: STUDIO_INFO.founderBio,
+  ctaText: 'Start a project',
+  ctaLink: '/contact'
+};
+
+export const CONTACT_CONTENT = {
+  heading: "Tell us about your brand. Let's create something extraordinary.",
+  introduction: 'Whether you need a full visual identity, high-finish print collateral, or an ongoing creative retainer, our team will get back to you directly with availability and next steps.',
+  responseTime: 'We respond to all project inquiries within 24 hours with a custom project proposal and scheduled kickoff date.'
+};
+
+/**
+ * Keeps the current static data as a resilient first-paint fallback, then swaps
+ * in CMS data after the public API has responded. Arrays retain their identity
+ * so all existing page components receive the new content on the next render.
+ */
+export function applyPublicContent(payload: {
+  settings?: Record<string, unknown>;
+  services?: unknown[];
+  portfolio?: unknown[];
+  faqs?: unknown[];
+  navigation?: unknown[];
+}): void {
+  const settings = payload.settings || {};
+  if (isRecord(settings.studio_info)) Object.assign(STUDIO_INFO, settings.studio_info);
+  if (Array.isArray(settings.stats)) replaceArray(STATS, settings.stats as StatItem[]);
+  if (Array.isArray(settings.creative_process)) replaceArray(CREATIVE_PROCESS, settings.creative_process as ProcessStep[]);
+  if (Array.isArray(settings.production_team)) replaceArray(PRODUCTION_TEAM, settings.production_team as TeamMember[]);
+  if (Array.isArray(settings.marquee_keywords)) replaceArray(MARQUEE_KEYWORDS, settings.marquee_keywords as string[]);
+  if (isRecord(settings.testimonial)) Object.assign(TESTIMONIAL, settings.testimonial);
+  if (Array.isArray(settings.client_reviews)) replaceArray(CLIENT_REVIEWS, settings.client_reviews as TestimonialItem[]);
+  if (isRecord(settings.home_content)) Object.assign(HOME_CONTENT, settings.home_content);
+  if (isRecord(settings.about_content)) Object.assign(ABOUT_CONTENT, settings.about_content);
+  if (isRecord(settings.contact_content)) Object.assign(CONTACT_CONTENT, settings.contact_content);
+  if (Array.isArray(payload.services) && payload.services.length > 0) replaceArray(CORE_SERVICES, payload.services as ServiceItem[]);
+  if (Array.isArray(payload.portfolio) && payload.portfolio.length > 0) replaceArray(PORTFOLIO_ITEMS, payload.portfolio as PortfolioItem[]);
+  if (Array.isArray(payload.faqs) && payload.faqs.length > 0) replaceArray(FAQS, payload.faqs as typeof FAQS);
+  if (Array.isArray(payload.navigation) && payload.navigation.length > 0) replaceArray(NAVIGATION_ITEMS, payload.navigation as typeof NAVIGATION_ITEMS);
+}
+
+function replaceArray<T>(target: T[], values: T[]): void {
+  target.splice(0, target.length, ...values);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}

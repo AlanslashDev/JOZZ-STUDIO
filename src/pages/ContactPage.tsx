@@ -15,28 +15,9 @@ import {
   HelpCircle,
   Sparkles
 } from 'lucide-react';
-import { STUDIO_INFO } from '../data/content';
+import { CONTACT_CONTENT, FAQS, STUDIO_INFO } from '../data/content';
 import { ContactForm } from '../components/ui/ContactForm';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
-
-const FAQS = [
-  {
-    q: 'What is the typical turnaround time for a project?',
-    a: 'Initial conceptual exploration (2â€“3 distinct routes) is presented within 48 to 72 hours for brand marks and logo design. Full brand universe packages and multi-page editorial publications typically take 2 to 3 weeks with dedicated feedback milestones.'
-  },
-  {
-    q: 'What deliverables and file formats are provided upon completion?',
-    a: 'You receive a complete master archive including scalable vector files (.AI, .EPS, .SVG, .PDF), transparent web formats (.PNG, .WebP), and press-ready CMYK PDFs with crop marks, bleeds, and Pantone spot specifications.'
-  },
-  {
-    q: 'Do you work with international clients outside the United Kingdom?',
-    a: 'Yes! While based primarily in Chelmsford and London, United Kingdom, our studio maintains a dedicated international line and collaborates with founders and creative directors globally across Europe, North America, and Asia.'
-  },
-  {
-    q: 'Can you liaise directly with my commercial print shop?',
-    a: 'Absolutely. We regularly coordinate directly with commercial printers to verify paper stocks, spot UV / foil debossing die-lines, and press proofs to guarantee zero production surprises.'
-  }
-];
 
 export const ContactPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -62,12 +43,11 @@ export const ContactPage: React.FC = () => {
         </ScrollReveal>
 
         <h1 className="text-display-xl uppercase font-thin text-foreground leading-[0.98] max-w-4xl mb-8">
-          Tell us about your brand. <br />
-          <span className="text-gradient-gold">Let's create something extraordinary.</span>
+          {CONTACT_CONTENT.heading}
         </h1>
 
         <p className="text-foreground-muted text-lg sm:text-xl max-w-2xl leading-relaxed font-light">
-          Whether you need a full visual identity, high-finish print collateral, or an ongoing creative retainer, our team will get back to you directly with availability and next steps.
+          {CONTACT_CONTENT.introduction}
         </p>
       </section>
 
@@ -201,7 +181,7 @@ export const ContactPage: React.FC = () => {
               <span>48–72 HOUR CONCEPT TURNAROUND</span>
             </div>
             <p className="text-xs text-foreground-muted leading-relaxed font-light">
-              We respond to all project inquiries within 24 hours with a custom project proposal and scheduled kickoff date.
+              {CONTACT_CONTENT.responseTime}
             </p>
           </div>
         </div>

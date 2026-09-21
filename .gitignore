@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Local PHP application secrets and runtime data
+backend/.env
+backend/storage/cache/*
+!backend/storage/cache/.gitkeep
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+backend/storage/sessions/*
+!backend/storage/sessions/.gitkeep
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

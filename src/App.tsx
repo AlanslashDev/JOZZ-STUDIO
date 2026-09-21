@@ -12,6 +12,8 @@ import { ServiceDetailPage } from './pages/ServiceDetailPage';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { ContactPage } from './pages/ContactPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { publicApi } from './lib/api';
+import { applyPublicContent } from './data/content';
 
 // Global Lenis ref so ScrollToTop can reset it
 export const lenisRef: { current: Lenis | null } = { current: null };
@@ -46,6 +48,20 @@ const ScrollToTop: React.FC = () => {
 
 export const App: React.FC = () => {
   const [showIntro, setShowIntro] = useState(true);
+  const [, setContentRevision] = useState(0);
+
+  // Render immediately with bundled fallback content. The API replaces it when
+  // available, so a cache/database outage never leaves the marketing site blank.
+  useEffect(() => {
+    publicApi.bootstrap()
+      .then((payload) => {
+        applyPublicContent(payload);
+        setContentRevision((revision) => revision + 1);
+      })
+      .catch(() => {
+        // Deliberately retain the static fallback; public pages must stay usable.
+      });
+  }, []);
 
   // Initialize Lenis smooth scroll and store ref
   useEffect(() => {
