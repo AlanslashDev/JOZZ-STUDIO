@@ -15,9 +15,10 @@ interface ServiceCardProps {
   service: ServiceItem;
   index: number;
   featured?: boolean;
+  displayNumber?: string;
 }
 
-export const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, featured = false }) => {
+export const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, featured = false, displayNumber }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
@@ -71,7 +72,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, featur
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
           <div className="absolute bottom-3 left-4 z-10">
             <span className="text-[10px] font-mono tracking-ultra text-brand-amber bg-black/60 backdrop-blur-md border border-brand-amber/20 px-2.5 py-1 rounded-md">
-              {service.number}
+              {displayNumber || service.number}
             </span>
           </div>
         </div>
@@ -83,7 +84,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, featur
         {!service.image && (
           <div className="flex items-center justify-between mb-5">
             <span className="font-mono text-[10px] tracking-ultra text-brand-amber bg-brand-amber/8 border border-brand-amber/15 px-2.5 py-1 rounded-md">
-              {service.number}
+              {displayNumber || service.number}
             </span>
             <div className="w-10 h-10 rounded-xl surface-card flex items-center justify-center text-brand-amber group-hover:bg-brand-amber/10 transition-colors duration-300">
               <Icon className="w-4.5 h-4.5 w-[18px] h-[18px]" />
@@ -112,7 +113,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, featur
 
         {/* Deliverables */}
         <div className="pt-4 border-t border-white/[0.05] space-y-1.5">
-          {service.deliverables.slice(0, 3).map((d, i) => (
+          {(service.deliverables || []).slice(0, 3).map((d, i) => (
             <div key={i} className="flex items-center gap-2 text-xs text-foreground-muted">
               <CheckCircle2 className="w-3 h-3 text-brand-amber/60 shrink-0" />
               <span>{d}</span>

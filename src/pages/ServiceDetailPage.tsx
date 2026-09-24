@@ -9,9 +9,9 @@ export const ServiceDetailPage: React.FC = () => {
   const { serviceId } = useParams<{ serviceId: string }>();
   const navigate = useNavigate();
 
-  const service = CORE_SERVICES.find((s) => s.id === serviceId && s.visible !== false) || CORE_SERVICES.find((s) => s.visible !== false) || CORE_SERVICES[0];
-
-  const headlineTop = service.heroHeadlineTop || 'DISCIPLINE';
+  const availableServices = CORE_SERVICES.filter((item) => item.visible !== false && item.id && item.title);
+  const service = availableServices.find((s) => s.id === serviceId) || availableServices[0] || CORE_SERVICES[0];
+  const serviceNumber = String(Math.max(0, availableServices.findIndex((item) => item.id === service.id) + 1)).padStart(2, '0');
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
@@ -36,7 +36,7 @@ export const ServiceDetailPage: React.FC = () => {
         {/* Large faint background watermark */}
         <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none opacity-[0.03] select-none">
           <span className="text-[18vw] font-display font-black uppercase tracking-tight text-white whitespace-nowrap">
-            {service.number} • {service.id.replace(/-/g, ' ')}
+            {serviceNumber} • {service.id.replace(/-/g, ' ')}
           </span>
         </div>
 
@@ -53,18 +53,6 @@ export const ServiceDetailPage: React.FC = () => {
               <span>{SERVICES_CONTENT.detailBackText}</span>
             </button>
           </div>
-
-          {/* Eyebrow label */}
-          <motion.div
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-5 sm:mb-6 mt-2 sm:mt-0"
-          >
-            <span className="text-[0.6rem] sm:text-[0.65rem] font-mono tracking-[0.4em] sm:tracking-[0.5em] text-brand-amber uppercase px-3.5 py-1.5 rounded-md bg-brand-amber/10 border border-brand-amber/20">
-              {headlineTop}
-            </span>
-          </motion.div>
 
           {/* Bebas Neue Giant Dual-Color Title */}
           <motion.h1
@@ -171,7 +159,7 @@ export const ServiceDetailPage: React.FC = () => {
               </p>
             </div>
             <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {service.deliverables.map((item, idx) => (
+              {(service.deliverables || []).map((item, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-3 sm:p-3.5 rounded-xl bg-surface-2 border border-white/5">
                   <CheckCircle2 className="w-4 h-4 text-brand-amber shrink-0 mt-0.5" />
                   <span className="text-xs font-mono text-foreground/90">{item}</span>

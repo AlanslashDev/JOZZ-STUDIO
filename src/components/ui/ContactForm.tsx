@@ -24,11 +24,14 @@ interface FormErrors {
 
 export const ContactForm: React.FC<{ initialService?: string }> = ({ initialService = '' }) => {
   const copy = CONTACT_CONTENT.form;
+  const selectableServices = CORE_SERVICES.filter(
+    (service) => service.visible !== false && Boolean(service.id) && Boolean(service.title),
+  );
   const [formData, setFormData] = useState<FormState>({
     name: '',
     email: '',
     phone: '',
-    service: initialService || CORE_SERVICES[0]?.title || 'Logo Design',
+    service: initialService || selectableServices[0]?.title || 'Logo Design',
     budget: copy.budgets[1] || copy.budgets[0] || '',
     timeline: copy.timelines[1] || copy.timelines[0] || '',
     message: '',
@@ -153,7 +156,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
                 name: '',
                 email: '',
                 phone: '',
-                service: CORE_SERVICES[0]?.title || 'Logo Design',
+                service: selectableServices[0]?.title || 'Logo Design',
                 budget: copy.budgets[1] || copy.budgets[0] || '',
                 timeline: copy.timelines[1] || copy.timelines[0] || '',
                 message: '',
@@ -256,9 +259,9 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             onBlur={handleBlur}
             className="w-full px-4 py-3.5 rounded-xl bg-background border border-background-border focus:border-brand-amber text-foreground text-sm focus:outline-none transition-colors cursor-pointer"
           >
-            {CORE_SERVICES.filter((srv) => srv.visible !== false).map((srv) => (
+            {selectableServices.map((srv, index) => (
               <option key={srv.id} value={srv.title} className="bg-background-elevated text-foreground">
-                {srv.number} — {srv.title}
+                {String(index + 1).padStart(2, '0')} — {srv.title}
               </option>
             ))}
             {copy.extraServices.map((service) => <option key={service} value={service} className="bg-background-elevated text-foreground">{service}</option>)}

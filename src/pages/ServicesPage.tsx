@@ -105,8 +105,8 @@ export const ServicesPage: React.FC = () => {
       {/* 2. THE 7 SERVICES GRID */}
       <section className={`${SERVICES_CONTENT.sectionVisibility.list === false ? 'hidden ' : ''}mb-32`}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {CORE_SERVICES.filter((service) => service.visible !== false).map((service, idx) => (
-            <ServiceCard key={service.id} service={service} index={idx} />
+          {CORE_SERVICES.filter((service) => service.visible !== false && service.id && service.title).map((service, idx) => (
+            <ServiceCard key={service.id} service={service} index={idx} displayNumber={String(idx + 1).padStart(2, '0')} />
           ))}
         </div>
       </section>

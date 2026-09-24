@@ -108,14 +108,14 @@ export const Navbar: React.FC = () => {
               >
                 {GLOBAL_CONTENT.servicesMenuAllText} →
               </Link>
-              {CORE_SERVICES.filter((srv) => srv.visible !== false).map((srv) => (
+              {CORE_SERVICES.filter((srv) => srv.visible !== false && srv.id && srv.title).map((srv, index) => (
                 <Link
                   key={srv.id}
                   to={`/services/${srv.id}`}
                   className="flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-mono text-foreground-muted hover:text-brand-amber hover:bg-white/[0.04] transition-all group/item"
                 >
                   <span className="whitespace-normal leading-tight">{srv.title}</span>
-                  <span className="text-[10px] text-brand-amber/50 group-hover/item:text-brand-amber ml-2 font-semibold shrink-0">{srv.number}</span>
+                  <span className="text-[10px] text-brand-amber/50 group-hover/item:text-brand-amber ml-2 font-semibold shrink-0">{String(index + 1).padStart(2, '0')}</span>
                 </Link>
               ))}
             </div>

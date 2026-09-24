@@ -167,7 +167,7 @@ export const CORE_SERVICES: ServiceItem[] = [
     iconName: "PenTool"
   },
   {
-    id: "branding-marketing",
+    id: "branding-marketing-design",
     number: "03",
     title: "Branding & Marketing Design",
     heroHeadlineTop: "HIGH IMPACT & ENGAGING",
@@ -668,6 +668,7 @@ export const HOME_CONTENT = {
   servicesEyebrow: '03 Core Disciplines',
   servicesHeading: 'End-to-end design & press production.',
   servicesCtaText: 'All services',
+  featuredServiceIds: CORE_SERVICES.filter((service) => service.visible !== false).map((service) => service.id),
   portfolioEyebrow: '04 Selected Works',
   portfolioHeading: 'Selected identity & editorial projects.',
   portfolioCtaText: 'View Full Archive',
@@ -677,6 +678,7 @@ export const HOME_CONTENT = {
   reviewsDescription: 'Real feedback from brand founders & creative directors.',
   aboutEyebrow: 'About',
   aboutHeading: 'Independent craft with direct collaboration.',
+  aboutDescription: STUDIO_INFO.founderBio,
   aboutButtonText: 'Discover the Studio',
   aboutToolsText: 'Adobe Illustrator • Photoshop • InDesign',
   finalEyebrow: 'Have a Project in Mind?',
@@ -867,6 +869,7 @@ export function applyCmsDocumentPreview(key: string, document: Record<string, un
   }
   if (key === 'about') {
     if (isRecord(document.content)) Object.assign(ABOUT_CONTENT, document.content);
+    if (isRecord(document.studioInfo)) Object.assign(STUDIO_INFO, document.studioInfo);
     if (Array.isArray(document.process)) replaceArray(CREATIVE_PROCESS, document.process as ProcessStep[]);
     if (Array.isArray(document.team)) replaceArray(PRODUCTION_TEAM, document.team as TeamMember[]);
   }
@@ -877,6 +880,7 @@ export function applyCmsDocumentPreview(key: string, document: Record<string, un
   if (key === 'portfolio') {
     if (isRecord(document.content)) Object.assign(PORTFOLIO_CONTENT, document.content);
     if (Array.isArray(document.items)) replaceArray(PORTFOLIO_ITEMS, document.items as PortfolioItem[]);
+    if (Array.isArray(document.categories)) replaceArray(PORTFOLIO_CATEGORIES, document.categories as string[]);
   }
   if (key === 'contact') {
     if (isRecord(document.content)) Object.assign(CONTACT_CONTENT, document.content);

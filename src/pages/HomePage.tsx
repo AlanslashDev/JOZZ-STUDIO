@@ -114,16 +114,33 @@ const AnimStat: React.FC<{
 };
 
 export const HomePage: React.FC = () => {
+  const featuredServiceIds = (Array.isArray(HOME_CONTENT.featuredServiceIds) ? HOME_CONTENT.featuredServiceIds : []).map((id) => id === 'branding-marketing' ? 'branding-marketing-design' : id);
+  const featuredServices = CORE_SERVICES.filter((service) => service.visible !== false && service.id && service.title && featuredServiceIds.includes(service.id));
   const [activeModalItem, setActiveModalItem] = useState<PortfolioItem | null>(null);
   const [currentReviewIdx, setCurrentReviewIdx] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [reviewsPerPage, setReviewsPerPage] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768 ? 1 : 2);
+  const reviewTouchStart = useRef<number | null>(null);
   const selectedPortfolioIds = Array.isArray(HOME_CONTENT.featuredPortfolioIds) ? HOME_CONTENT.featuredPortfolioIds as string[] : [];
   const selectedPortfolio = selectedPortfolioIds.length
     ? selectedPortfolioIds.map((id) => PORTFOLIO_ITEMS.find((item) => item.id === id)).filter((item): item is PortfolioItem => Boolean(item && item.visible !== false))
     : PORTFOLIO_ITEMS.filter((item) => item.visible !== false).slice(0, 6);
   const portfolioPreview = selectedPortfolio.length ? selectedPortfolio : PORTFOLIO_ITEMS.filter((item) => item.visible !== false).slice(0, 6);
 
-  const totalReviewPages = Math.ceil(CLIENT_REVIEWS.length / 2);
+  const totalReviewPages = Math.max(1, Math.ceil(CLIENT_REVIEWS.length / reviewsPerPage));
+
+  // Use one card per carousel slide on phones, while retaining two-card pages
+  // on tablet and desktop screens.
+  useEffect(() => {
+    const updateReviewsPerPage = () => setReviewsPerPage(window.innerWidth < 768 ? 1 : 2);
+    updateReviewsPerPage();
+    window.addEventListener('resize', updateReviewsPerPage);
+    return () => window.removeEventListener('resize', updateReviewsPerPage);
+  }, []);
+
+  useEffect(() => {
+    setCurrentReviewIdx((current) => Math.min(current, totalReviewPages - 1));
+  }, [totalReviewPages]);
 
   // Auto-slide reviews every 5.5s unless paused
   useEffect(() => {
@@ -142,6 +159,14 @@ export const HomePage: React.FC = () => {
   const prevReview = () => {
     setIsAutoPlay(false);
     setCurrentReviewIdx((prev) => (prev - 1 + totalReviewPages) % totalReviewPages);
+  };
+
+  const finishReviewSwipe = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = reviewTouchStart.current;
+    const end = event.changedTouches[0]?.clientX;
+    reviewTouchStart.current = null;
+    if (start === null || end === undefined || Math.abs(end - start) < 40) return;
+    if (end < start) nextReview(); else prevReview();
   };
 
   return (
@@ -308,7 +333,7 @@ export const HomePage: React.FC = () => {
 
             <ScrollReveal direction="up" delay={0.2}>
               <p className="text-foreground-muted text-sm leading-relaxed max-w-2xl mb-10">
-                {STUDIO_INFO.founderBio}
+                {HOME_CONTENT.aboutDescription}
               </p>
             </ScrollReveal>
 
@@ -415,8 +440,8 @@ export const HomePage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {CORE_SERVICES.filter((service) => service.visible !== false).map((service, idx) => (
-            <ServiceCard key={service.id} service={service} index={idx} />
+          {featuredServices.map((service, idx) => (
+            <ServiceCard key={service.id} service={service} index={idx} displayNumber={String(idx + 1).padStart(2, '0')} />
           ))}
         </div>
       </section>
@@ -526,7 +551,7 @@ export const HomePage: React.FC = () => {
               </p>
 
               {/* Slider Arrow Buttons */}
-              <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
                 <button
                   onClick={prevReview}
                   className="w-10 h-10 rounded-full border border-white/10 hover:border-brand-amber/50 bg-surface-1 hover:bg-surface-2 text-foreground-muted hover:text-brand-amber transition-all duration-300 flex items-center justify-center group shadow-lg"
@@ -550,18 +575,19 @@ export const HomePage: React.FC = () => {
             className="overflow-hidden"
             onMouseEnter={() => setIsAutoPlay(false)}
             onMouseLeave={() => setIsAutoPlay(true)}
+            onTouchStart={(event) => { reviewTouchStart.current = event.touches[0]?.clientX ?? null; }}
+            onTouchEnd={finishReviewSwipe}
           >
             <motion.div
               className="flex transition-transform duration-700 ease-out"
               animate={{ transform: `translateX(-${currentReviewIdx * 100}%)` }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
-              {/* Group reviews into 2-slide pages on desktop, 1 on mobile */}
-              {Array.from({ length: Math.ceil(CLIENT_REVIEWS.length / 2) }).map((_, pageIdx) => {
-                const pair = CLIENT_REVIEWS.slice(pageIdx * 2, pageIdx * 2 + 2);
+              {Array.from({ length: totalReviewPages }).map((_, pageIdx) => {
+                const pageReviews = CLIENT_REVIEWS.slice(pageIdx * reviewsPerPage, pageIdx * reviewsPerPage + reviewsPerPage);
                 return (
                   <div key={pageIdx} className="w-full shrink-0 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 px-1">
-                    {pair.map((review) => (
+                    {pageReviews.map((review) => (
                       <div
                         key={review.attribution}
                         className="p-8 sm:p-10 rounded-3xl bg-surface-1 border border-white/[0.08] hover:border-brand-amber/40 transition-all duration-500 flex flex-col justify-between spotlight-card shadow-2xl relative group min-h-[320px] sm:min-h-[340px]"
@@ -616,7 +642,7 @@ export const HomePage: React.FC = () => {
 
           {/* Slider Pagination Dots */}
           <div className="flex items-center justify-center gap-2.5 mt-10">
-            {Array.from({ length: Math.ceil(CLIENT_REVIEWS.length / 2) }).map((_, i) => (
+            {Array.from({ length: totalReviewPages }).map((_, i) => (
               <button
                 key={i}
                 onClick={() => {

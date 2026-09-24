@@ -15,7 +15,7 @@ const PortfolioPreviewImage: React.FC<{ src: string; alt: string; title: string 
 
 export const PortfolioPage: React.FC = () => {
   const visibleItems = PORTFOLIO_ITEMS.filter((item) => item.visible !== false);
-  const CATEGORIES = [PORTFOLIO_CONTENT.allFilterLabel, ...PORTFOLIO_CATEGORIES.filter((category) => visibleItems.some((item) => item.category === category))];
+  const CATEGORIES = [PORTFOLIO_CONTENT.allFilterLabel, ...PORTFOLIO_CATEGORIES];
   const [searchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<string>(PORTFOLIO_CONTENT.allFilterLabel);
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
@@ -185,7 +185,7 @@ export const PortfolioPage: React.FC = () => {
 
                     <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
                       <span className="text-[10px] font-mono text-foreground-subtle uppercase tracking-widest">
-                        {item.deliverables.length} {PORTFOLIO_CONTENT.deliverablesLabel}
+                        {(item.deliverables || []).length} {PORTFOLIO_CONTENT.deliverablesLabel}
                       </span>
                       <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-foreground-muted group-hover:text-brand-amber group-hover:border-brand-amber/40 transition-colors">
                         <ArrowUpRight className="w-3.5 h-3.5" />

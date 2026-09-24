@@ -320,7 +320,7 @@ function validateCmsContent(mixed $value, string $path='content', int $depth=0):
         // Preserve normal editor formatting (newlines and tabs) while rejecting
         // the remaining non-printable control characters.
         if(preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/',$value))Http::error('Content contains an invalid character.',422,['field'=>$path]);
-        if(preg_match('/^\s*(?:(?:javascript|vbscript|data|file|blob)\s*:|\/\/)/i',$value))Http::error('Unsafe links are not allowed.',422,['field'=>$path]);
+        if(preg_match('/^\s*(?:javascript|vbscript|data|file|blob)\s*:/i',$value))Http::error('Unsafe links are not allowed.',422,['field'=>$path]);
         return;
     }
     if(is_array($value))foreach($value as $key=>$item)validateCmsContent($item,$path.'.'.$key,$depth+1);
