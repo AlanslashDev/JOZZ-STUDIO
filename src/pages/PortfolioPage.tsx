@@ -2,25 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Image as ImageIcon, Sparkles, Eye, CheckCircle2, Tag, Calendar, Layers, Play } from 'lucide-react';
-import { PORTFOLIO_ITEMS } from '../data/content';
+import { PORTFOLIO_ITEMS, PORTFOLIO_CONTENT, PORTFOLIO_CATEGORIES } from '../data/content';
 import { LightboxModal } from '../components/ui/LightboxModal';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { PortfolioItem, PortfolioCategory } from '../types';
 
-const CATEGORIES: ('All' | PortfolioCategory)[] = [
-  'All',
-  'Logo Design',
-  'Branding',
-  'Brochures & Posters',
-  'Business Cards',
-  'Magazine Layout',
-  'Photography',
-  'Reels / Motion',
-];
+const PortfolioPreviewImage: React.FC<{ src: string; alt: string; title: string }> = ({ src, alt, title }) => {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center"><div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-brand-amber mb-3"><ImageIcon className="w-6 h-6" /></div><p className="text-[11px] font-mono text-foreground-muted max-w-[220px] leading-tight">{title}</p></div>;
+  return <img src={src} alt={alt} onError={() => setFailed(true)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90" loading="eager" />;
+};
 
 export const PortfolioPage: React.FC = () => {
+  const visibleItems = PORTFOLIO_ITEMS.filter((item) => item.visible !== false);
+  const CATEGORIES = [PORTFOLIO_CONTENT.allFilterLabel, ...PORTFOLIO_CATEGORIES.filter((category) => visibleItems.some((item) => item.category === category))];
   const [searchParams] = useSearchParams();
-  const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [activeCategory, setActiveCategory] = useState<string>(PORTFOLIO_CONTENT.allFilterLabel);
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
 
   // Auto-select filter from URL query param (e.g., ?filter=reel or ?filter=motion or ?category=...)
@@ -39,36 +36,36 @@ export const PortfolioPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  const filteredItems = activeCategory === 'All'
-    ? PORTFOLIO_ITEMS
-    : PORTFOLIO_ITEMS.filter((item) => item.category === activeCategory);
+  const filteredItems = activeCategory === PORTFOLIO_CONTENT.allFilterLabel
+    ? visibleItems
+    : visibleItems.filter((item) => item.category === activeCategory);
 
   const getCategoryCount = (cat: string) => {
-    if (cat === 'All') return PORTFOLIO_ITEMS.length;
-    return PORTFOLIO_ITEMS.filter((item) => item.category === cat).length;
+    if (cat === PORTFOLIO_CONTENT.allFilterLabel) return visibleItems.length;
+    return visibleItems.filter((item) => item.category === cat).length;
   };
 
   return (
     <div className="pt-24 sm:pt-32 pb-24 max-w-7xl mx-auto px-5 sm:px-10">
       {/* 1. HEADER */}
-      <section className="mb-20">
+      <section className={`${PORTFOLIO_CONTENT.sectionVisibility.hero === false ? 'hidden ' : ''}mb-20`}>
         <ScrollReveal direction="up" delay={0.1}>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-brand-amber/10 border border-brand-amber/20 text-[0.6rem] font-mono tracking-[0.5em] uppercase text-brand-amber mb-6">
-            <span>CURATED DESIGN ARCHIVE</span>
+            <span>{PORTFOLIO_CONTENT.eyebrow}</span>
           </div>
         </ScrollReveal>
 
         <h1 className="text-display-xl uppercase font-thin text-foreground leading-[0.98] max-w-4xl mb-8">
-          A showcase of marks, print collateral & <span className="text-gradient-gold">visual identities.</span>
+          {PORTFOLIO_CONTENT.heading} <span className="text-gradient-gold">{PORTFOLIO_CONTENT.highlightedHeading}</span>
         </h1>
 
         <p className="text-foreground-muted text-lg sm:text-xl max-w-3xl leading-relaxed font-light">
-          Explore recent works across branding, packaging, editorial layout, fashion photography, and kinetic motion reels. Click any piece to inspect technical deliverables, typography details, and client specifications.
+          {PORTFOLIO_CONTENT.description}
         </p>
       </section>
 
       {/* 2. CATEGORY FILTER TABS — Responsive, Balanced 2-Col Grid on Mobile & Clean Flex Row on Desktop */}
-      <section className="mb-12">
+      <section className={`${PORTFOLIO_CONTENT.sectionVisibility.filters === false ? 'hidden ' : ''}mb-12`}>
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3">
           {CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat;
@@ -97,7 +94,7 @@ export const PortfolioPage: React.FC = () => {
       </section>
 
       {/* 3. PORTFOLIO GRID */}
-      <section className="min-h-[500px]">
+      <section className={`${PORTFOLIO_CONTENT.sectionVisibility.gallery === false ? 'hidden ' : ''}min-h-[500px]`}>
         <motion.div
           layout
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -132,12 +129,7 @@ export const PortfolioPage: React.FC = () => {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90"
                       />
                     ) : previewImage ? (
-                      <img
-                        src={previewImage}
-                        alt={item.placeholderLabel || item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90"
-                        loading="lazy"
-                      />
+                      <PortfolioPreviewImage src={previewImage} alt={item.placeholderLabel || item.title} title={item.placeholderLabel || item.title} />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center">
                         <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-brand-amber mb-3 shadow-inner">
@@ -167,7 +159,7 @@ export const PortfolioPage: React.FC = () => {
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-20">
                       <div className="px-4 py-2 rounded-full bg-brand-amber text-background text-xs font-mono font-semibold uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
                         {isVideo ? <Play className="w-3.5 h-3.5 fill-current" /> : <Eye className="w-3.5 h-3.5" />}
-                        <span>{isVideo ? 'Expand Full Reel' : 'Inspect Details'}</span>
+                        <span>{isVideo ? PORTFOLIO_CONTENT.videoActionText : PORTFOLIO_CONTENT.imageActionText}</span>
                       </div>
                     </div>
                   </div>
@@ -193,7 +185,7 @@ export const PortfolioPage: React.FC = () => {
 
                     <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
                       <span className="text-[10px] font-mono text-foreground-subtle uppercase tracking-widest">
-                        {item.deliverables.length} Deliverables
+                        {item.deliverables.length} {PORTFOLIO_CONTENT.deliverablesLabel}
                       </span>
                       <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-foreground-muted group-hover:text-brand-amber group-hover:border-brand-amber/40 transition-colors">
                         <ArrowUpRight className="w-3.5 h-3.5" />

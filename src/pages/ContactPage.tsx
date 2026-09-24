@@ -35,7 +35,7 @@ export const ContactPage: React.FC = () => {
   return (
     <div className="pt-24 sm:pt-32 pb-24 max-w-7xl mx-auto px-5 sm:px-10">
       {/* 1. HEADER */}
-      <section className="mb-20">
+      <section className={`${CONTACT_CONTENT.sectionVisibility.hero === false ? 'hidden ' : ''}mb-20`}>
         <ScrollReveal direction="up" delay={0.1}>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-brand-amber/10 border border-brand-amber/20 text-[0.6rem] font-mono tracking-[0.5em] uppercase text-brand-amber mb-6">
             <span>START A COLLABORATION</span>
@@ -52,15 +52,15 @@ export const ContactPage: React.FC = () => {
       </section>
 
       {/* 2. FORM & CONTACT INFO GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-28">
+      <div className={`${CONTACT_CONTENT.sectionVisibility.form === false ? 'hidden ' : ''}grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-28`}>
         {/* Left Column: Interactive Form */}
         <div className="lg:col-span-7 p-8 sm:p-12 rounded-3xl surface-card spotlight-card shadow-2xl relative">
           <div className="mb-8">
             <h2 className="font-display font-bold text-xl sm:text-2xl uppercase tracking-wider text-foreground mb-2">
-              Project Inquiry Form
+              {CONTACT_CONTENT.formHeading}
             </h2>
             <p className="text-xs sm:text-sm text-foreground-muted font-light">
-              Fill in your requirements below for a detailed project estimate and timeline.
+              {CONTACT_CONTENT.formDescription}
             </p>
           </div>
 
@@ -76,7 +76,7 @@ export const ContactPage: React.FC = () => {
           <div className="p-8 rounded-3xl surface-card spotlight-card space-y-6 shadow-xl relative">
             <div className="flex items-center justify-between">
               <h3 className="text-[0.6rem] font-mono uppercase tracking-[0.5em] text-brand-amber">
-                Direct Studio Contacts
+                {CONTACT_CONTENT.contactsHeading}
               </h3>
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             </div>
@@ -188,18 +188,18 @@ export const ContactPage: React.FC = () => {
       </div>
 
       {/* 3. FREQUENTLY ASKED QUESTIONS */}
-      <section className="py-16 border-t border-white/[0.05]">
+      <section className={`${CONTACT_CONTENT.sectionVisibility.faqs === false ? 'hidden ' : ''}py-16 border-t border-white/[0.05]`}>
         <div className="mb-14">
           <span className="text-[0.6rem] font-mono uppercase tracking-[0.5em] text-brand-amber block mb-3">
-            02 FREQUENTLY ASKED QUESTIONS
+            {CONTACT_CONTENT.faqEyebrow}
           </span>
           <h2 className="text-display-lg uppercase font-thin text-foreground">
-            Clear answers on <span className="italic text-gradient-gold">process, timelines & delivery.</span>
+            {CONTACT_CONTENT.faqHeading}
           </h2>
         </div>
 
         <div className="max-w-3xl space-y-4">
-          {FAQS.map((faq, idx) => {
+          {FAQS.filter((faq) => !('visible' in faq) || faq.visible !== false).map((faq, idx) => {
             const isOpen = openFaqIndex === idx;
 
             return (

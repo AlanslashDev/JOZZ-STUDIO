@@ -2,14 +2,14 @@ import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowUpRight, CheckCircle2, Phone, Mail, Sparkles } from 'lucide-react';
-import { CORE_SERVICES, STUDIO_INFO } from '../data/content';
+import { CORE_SERVICES, STUDIO_INFO, SERVICES_CONTENT } from '../data/content';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 
 export const ServiceDetailPage: React.FC = () => {
   const { serviceId } = useParams<{ serviceId: string }>();
   const navigate = useNavigate();
 
-  const service = CORE_SERVICES.find((s) => s.id === serviceId) || CORE_SERVICES[0];
+  const service = CORE_SERVICES.find((s) => s.id === serviceId && s.visible !== false) || CORE_SERVICES.find((s) => s.visible !== false) || CORE_SERVICES[0];
 
   const headlineTop = service.heroHeadlineTop || 'DISCIPLINE';
 
@@ -18,7 +18,7 @@ export const ServiceDetailPage: React.FC = () => {
       {/* ─────────────────────────────────────────
           1. HERO SECTION (Beyond The Borders style)
           ───────────────────────────────────────── */}
-      <section className="relative min-h-screen sm:min-h-[90vh] flex flex-col justify-center items-center text-center px-5 sm:px-10 pt-28 pb-16 sm:pt-32 sm:pb-20 overflow-hidden">
+      <section className={`${SERVICES_CONTENT.sectionVisibility.hero === false ? 'hidden ' : ''}relative min-h-screen sm:min-h-[90vh] flex flex-col justify-center items-center text-center px-5 sm:px-10 pt-28 pb-16 sm:pt-32 sm:pb-20 overflow-hidden`}>
         {/* Hero background image */}
         {service.image && (
           <img
@@ -50,7 +50,7 @@ export const ServiceDetailPage: React.FC = () => {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full glass border border-white/10 text-[10px] sm:text-xs font-mono uppercase tracking-wider sm:tracking-widest text-foreground-muted hover:text-brand-amber hover:border-brand-amber/40 transition-all duration-300 group"
             >
               <ArrowLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:-translate-x-1 transition-transform" />
-              <span>Back to Services</span>
+              <span>{SERVICES_CONTENT.detailBackText}</span>
             </button>
           </div>
 
@@ -96,8 +96,8 @@ export const ServiceDetailPage: React.FC = () => {
             transition={{ duration: 0.7, delay: 0.45 }}
             className="flex flex-wrap justify-center gap-4"
           >
-            <Link to="/contact" className="btn-amber text-xs tracking-[0.2em]">
-              Start a Project <ArrowUpRight className="w-3.5 h-3.5" />
+            <Link to={SERVICES_CONTENT.detailCtaLink} className="btn-amber text-xs tracking-[0.2em]">
+              {SERVICES_CONTENT.detailCtaText} <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </motion.div>
         </div>
@@ -109,17 +109,17 @@ export const ServiceDetailPage: React.FC = () => {
       {/* ─────────────────────────────────────────
           2. 'WHAT WE OFFER' 6-CARD GRID (BTB Image 2)
           ───────────────────────────────────────── */}
-      <section className="py-16 sm:py-24 lg:py-32 max-w-7xl mx-auto px-5 sm:px-10 relative z-10">
+      <section className={`${SERVICES_CONTENT.sectionVisibility.offers === false ? 'hidden ' : ''}py-16 sm:py-24 lg:py-32 max-w-7xl mx-auto px-5 sm:px-10 relative z-10`}>
         {/* Section Header */}
         <div className="text-center mb-12 sm:mb-16 lg:mb-20">
           <ScrollReveal direction="up">
             <span className="text-[0.6rem] font-mono uppercase tracking-[0.5em] text-brand-amber block mb-3">
-              Scope of Capabilities
+              {SERVICES_CONTENT.offersEyebrow}
             </span>
           </ScrollReveal>
           <ScrollReveal direction="up" delay={0.1}>
             <h2 className="text-display-xl uppercase text-foreground leading-tight">
-              WHAT WE <span className="text-gradient-gold">OFFER</span>
+              {SERVICES_CONTENT.offersHeading}
             </h2>
           </ScrollReveal>
           <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-brand-amber to-transparent mx-auto mt-4" />
@@ -161,13 +161,13 @@ export const ServiceDetailPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
             <div className="lg:col-span-4">
               <span className="text-[0.6rem] font-mono uppercase tracking-[0.5em] text-brand-amber block mb-2">
-                Guaranteed Standard
+                {SERVICES_CONTENT.deliverablesEyebrow}
               </span>
               <h3 className="font-display font-bold text-lg sm:text-xl uppercase tracking-wider text-foreground">
-                Core Deliverables
+                {SERVICES_CONTENT.deliverablesHeading}
               </h3>
               <p className="text-xs text-foreground-muted mt-2 leading-relaxed">
-                Every project includes full vector production master files, color-separated proofs, and direct technical printer coordination.
+                {SERVICES_CONTENT.deliverablesDescription}
               </p>
             </div>
             <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -185,30 +185,30 @@ export const ServiceDetailPage: React.FC = () => {
       {/* ─────────────────────────────────────────
           3. 'READY TO BUILD / ELEVATE?' (BTB Image 3)
           ───────────────────────────────────────── */}
-      <section className="relative py-20 sm:py-28 lg:py-36 overflow-hidden bg-surface-1 border-t border-white/[0.06] text-center">
+      <section className={`${SERVICES_CONTENT.sectionVisibility.finalCta === false ? 'hidden ' : ''}relative py-20 sm:py-28 lg:py-36 overflow-hidden bg-surface-1 border-t border-white/[0.06] text-center`}>
         {/* Glow */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(232,166,76,0.08),transparent_70%)] pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-10 space-y-5 sm:space-y-6">
           <ScrollReveal direction="up">
             <h2 className="text-display-xl uppercase text-foreground tracking-[0.06em]">
-              READY TO <span className="text-gradient-gold">COLLABORATE?</span>
+              {SERVICES_CONTENT.finalHeading}
             </h2>
           </ScrollReveal>
 
           <ScrollReveal direction="up" delay={0.1}>
             <p className="text-xs sm:text-sm text-foreground-muted max-w-xl mx-auto leading-relaxed font-light">
-              Elevate your brand with 14+ years of bespoke design mastery, direct designer collaboration, and guaranteed press-ready excellence.
+              {SERVICES_CONTENT.finalDescription}
             </p>
           </ScrollReveal>
 
           <ScrollReveal direction="up" delay={0.2}>
             <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-3 sm:gap-4 pt-2 sm:pt-4">
-              <Link to="/contact" className="btn-amber text-xs tracking-[0.2em] w-full sm:w-auto justify-center">
-                Get a Quote <ArrowUpRight className="w-3.5 h-3.5" />
+              <Link to={SERVICES_CONTENT.finalPrimaryLink} className="btn-amber text-xs tracking-[0.2em] w-full sm:w-auto justify-center">
+                {SERVICES_CONTENT.finalPrimaryText} <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
-              <Link to="/portfolio" className="btn-outline text-xs tracking-[0.2em] w-full sm:w-auto justify-center">
-                View Portfolio
+              <Link to={SERVICES_CONTENT.finalSecondaryLink} className="btn-outline text-xs tracking-[0.2em] w-full sm:w-auto justify-center">
+                {SERVICES_CONTENT.finalSecondaryText}
               </Link>
             </div>
           </ScrollReveal>

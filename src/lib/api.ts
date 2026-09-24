@@ -30,6 +30,7 @@ export interface PublicBootstrap {
   faqs: unknown[];
   navigation: unknown[];
   categories: string[];
+  seo: Record<string, { title?: string; metaTitle?: string; metaDescription?: string; indexable?: boolean }>;
   updatedAt: string;
 }
 
@@ -44,7 +45,7 @@ export interface EnquiryPayload {
 }
 
 export const publicApi = {
-  bootstrap: () => request<PublicBootstrap>('/public/bootstrap'),
+  bootstrap: () => request<PublicBootstrap>('/public/bootstrap', { cache: 'no-store' }),
   submitEnquiry: (payload: EnquiryPayload) => request<{ received: boolean }>('/public/enquiries', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

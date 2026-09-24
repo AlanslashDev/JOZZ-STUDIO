@@ -11,6 +11,12 @@ import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { HeroDesignShowcaseBg } from '../components/ui/HeroDesignShowcaseBg';
 import { PortfolioItem } from '../types';
 
+const HomePortfolioImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+  return <img src={src} alt={alt} onError={() => setFailed(true)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 filter brightness-90 contrast-105" loading="eager" />;
+};
+
 // â”€â”€â”€ Animated counter hook â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function useCounter(target: number, duration = 2000, start = false) {
   const [count, setCount] = useState(0);
@@ -111,7 +117,11 @@ export const HomePage: React.FC = () => {
   const [activeModalItem, setActiveModalItem] = useState<PortfolioItem | null>(null);
   const [currentReviewIdx, setCurrentReviewIdx] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
-  const portfolioPreview = PORTFOLIO_ITEMS.slice(0, 6);
+  const selectedPortfolioIds = Array.isArray(HOME_CONTENT.featuredPortfolioIds) ? HOME_CONTENT.featuredPortfolioIds as string[] : [];
+  const selectedPortfolio = selectedPortfolioIds.length
+    ? selectedPortfolioIds.map((id) => PORTFOLIO_ITEMS.find((item) => item.id === id)).filter((item): item is PortfolioItem => Boolean(item && item.visible !== false))
+    : PORTFOLIO_ITEMS.filter((item) => item.visible !== false).slice(0, 6);
+  const portfolioPreview = selectedPortfolio.length ? selectedPortfolio : PORTFOLIO_ITEMS.filter((item) => item.visible !== false).slice(0, 6);
 
   const totalReviewPages = Math.ceil(CLIENT_REVIEWS.length / 2);
 
@@ -140,7 +150,7 @@ export const HomePage: React.FC = () => {
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           SECTION 1: HERO (full-viewport cinematic)
           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-      <section className="relative min-h-[100svh] flex flex-col justify-between overflow-hidden">
+      <section className={`${HOME_CONTENT.sectionVisibility.hero === false ? 'hidden ' : ''}relative min-h-[100svh] flex flex-col justify-between overflow-hidden`}>
         {/* User Curated Video Backgrounds with Crossfade Transitions */}
         <HeroDesignShowcaseBg />
 
@@ -164,7 +174,7 @@ export const HomePage: React.FC = () => {
             className="mt-8"
           >
             <div className="text-[0.6rem] tracking-[0.5em] text-brand-amber uppercase mb-3 font-mono">
-              Joozz Designing Studio
+              {HOME_CONTENT.heroEyebrow}
             </div>
             <p className="max-w-xs text-xs sm:text-sm text-foreground-muted font-light leading-relaxed">
               {HOME_CONTENT.heroSubheading}
@@ -184,10 +194,10 @@ export const HomePage: React.FC = () => {
               <span>{HOME_CONTENT.ctaText}</span> <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </Link>
             <Link 
-              to="/contact" 
+              to={HOME_CONTENT.secondaryCtaLink}
               className="btn-outline text-[10px] sm:text-xs py-2 sm:py-2.5 px-5 sm:px-6 whitespace-nowrap inline-flex items-center gap-2"
             >
-              <span>START A PROJECT</span>
+              <span>{HOME_CONTENT.secondaryCtaText}</span>
             </Link>
           </motion.div>
         </div>
@@ -200,7 +210,7 @@ export const HomePage: React.FC = () => {
           className="relative z-10 max-w-7xl mx-auto w-full px-8 sm:px-10 pb-8"
         >
           <div className="border-t border-white/5 pt-6 grid grid-cols-3 md:grid-cols-6 gap-4 text-[0.6rem] font-mono text-foreground-subtle">
-            {['Brand Identity', 'Brochure Design', 'Business Cards', 'Magazine Layout', 'Print Media', 'Reels / Motion'].map((s, i) => (
+            {HOME_CONTENT.heroTags.map((s, i) => (
               <span key={i} className="uppercase tracking-[0.4em] truncate">• {s}</span>
             ))}
           </div>
@@ -211,20 +221,20 @@ export const HomePage: React.FC = () => {
       {/* ──────────────────────────────────────────────────────────────────────── 
           SECTION 2: DUAL MARQUEE TICKER (BTB style)
           ────────────────────────────────────────────────────────────────────────  */}
-      <Marquee className="my-0 border-y border-white/[0.04]" />
+      {HOME_CONTENT.sectionVisibility.hero !== false && <Marquee className="my-0 border-y border-white/[0.04]" />}
 
       {/* ──────────────────────────────────────────────────────── 
           FEATURED REEL HERO BLOCK (Our Work in Motion)
           ────────────────────────────────────────────────────────  */}
-      <section className="relative py-16 sm:py-24 bg-[#050507] border-y border-white/[0.06] overflow-hidden">
+      <section className={`${HOME_CONTENT.sectionVisibility.showcase === false ? 'hidden ' : ''}relative py-16 sm:py-24 bg-[#050507] border-y border-white/[0.06] overflow-hidden`}>
         <div className="max-w-7xl mx-auto px-5 sm:px-10">
           <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-surface-1 spotlight-card">
             {/* Background Reel Video / Fallback Poster */}
             <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] min-h-[340px] sm:min-h-[460px] overflow-hidden bg-black flex items-center justify-center">
               {/* TODO(client): provide compressed .mp4 (H.264, under ~20MB) or embed link for Featured Home Reel */}
               <video
-                src="/5092427-hd_1920_1080_30fps - Trim.mp4"
-                poster="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1600&q=80"
+                src={HOME_CONTENT.featuredVideo}
+                poster={HOME_CONTENT.featuredVideoPoster}
                 autoPlay
                 muted
                 loop
@@ -239,23 +249,23 @@ export const HomePage: React.FC = () => {
               <div className="relative z-20 max-w-2xl text-center px-6 py-10 flex flex-col items-center">
                 <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-amber/15 border border-brand-amber/30 text-[10px] sm:text-xs font-mono uppercase tracking-[0.3em] text-brand-amber mb-4 backdrop-blur-md">
                   <span className="w-2 h-2 rounded-full bg-brand-amber animate-ping" />
-                  Kinetic Showcase
+                  {HOME_CONTENT.featuredEyebrow}
                 </span>
 
                 <h2 className="text-display-xl uppercase text-foreground leading-tight tracking-[0.04em] mb-4">
-                  Our Work in <span className="text-gradient-gold italic">Motion.</span>
+                  {HOME_CONTENT.featuredHeading}
                 </h2>
 
                 <p className="text-xs sm:text-sm text-foreground-muted max-w-lg leading-relaxed font-light mb-8">
-                  From dynamic logo reveals to high-energy editorial lookbooks—bringing brand stories to life with cinematic pacing and precision.
+                  {HOME_CONTENT.featuredDescription}
                 </p>
 
                 <div className="flex flex-wrap justify-center items-center gap-4">
                   <Link
-                    to="/portfolio?filter=reel"
+                    to={HOME_CONTENT.featuredCtaLink}
                     className="btn-amber text-xs tracking-[0.18em]"
                   >
-                    See Full Portfolio <ArrowUpRight className="w-3.5 h-3.5" />
+                    {HOME_CONTENT.featuredCtaText} <ArrowUpRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               </div>
@@ -271,7 +281,7 @@ export const HomePage: React.FC = () => {
       {/* ──────────────────────────────────────────────────────────────────────── 
           SECTION 3: ABOUT TEASER — Two-col asymmetric
           ────────────────────────────────────────────────────────────────────────  */}
-      <section className="py-28 sm:py-36 max-w-7xl mx-auto px-8 sm:px-10">
+      <section className={`${HOME_CONTENT.sectionVisibility.about === false ? 'hidden ' : ''}py-28 sm:py-36 max-w-7xl mx-auto px-8 sm:px-10`}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
 
           {/* Left: large editorial number + label */}
@@ -283,7 +293,7 @@ export const HomePage: React.FC = () => {
             </ScrollReveal>
             <ScrollReveal direction="up" delay={0.1}>
               <span className="text-xs sm:text-sm font-mono uppercase tracking-[0.4em] text-brand-amber font-semibold">
-                ABOUT
+                {HOME_CONTENT.aboutEyebrow}
               </span>
             </ScrollReveal>
           </div>
@@ -292,8 +302,7 @@ export const HomePage: React.FC = () => {
           <div className="lg:col-span-9">
             <ScrollReveal direction="up" delay={0.1}>
               <h2 className="text-hero uppercase text-foreground leading-[0.92] mb-8 tracking-tight">
-                INDEPENDENT CRAFT<br />
-                <span className="italic text-gradient-gold">WITH DIRECT COLLABORATION.</span>
+                {HOME_CONTENT.aboutHeading}
               </h2>
             </ScrollReveal>
 
@@ -306,11 +315,11 @@ export const HomePage: React.FC = () => {
             <ScrollReveal direction="up" delay={0.3}>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
                 <Link to="/about" className="btn-amber">
-                  Discover the Studio <ArrowUpRight className="w-3.5 h-3.5" />
+                  {HOME_CONTENT.aboutButtonText} <ArrowUpRight className="w-3.5 h-3.5" />
                 </Link>
                 <div className="flex items-center gap-3 text-xs text-foreground-subtle font-mono">
                   <span className="w-8 h-px bg-white/20" />
-                  <span className="tracking-wider">ADOBE ILLUSTRATOR • PHOTOSHOP • INDESIGN</span>
+                  <span className="tracking-wider">{HOME_CONTENT.aboutToolsText}</span>
                 </div>
               </div>
             </ScrollReveal>
@@ -321,61 +330,39 @@ export const HomePage: React.FC = () => {
       {/* ──────────────────────────────────────────────────────── 
           SECTION 3.5: WHY CHOOSE JOOZZ DESIGNING (Trust & Excellence Grid)
           ────────────────────────────────────────────────────────  */}
-      <section className="py-20 sm:py-28 bg-[#09090c] border-t border-white/[0.04] relative overflow-hidden">
+      <section className={`${HOME_CONTENT.sectionVisibility.why === false ? 'hidden ' : ''}py-20 sm:py-28 bg-[#09090c] border-t border-white/[0.04] relative overflow-hidden`}>
         <div className="max-w-7xl mx-auto px-5 sm:px-10">
           <div className="mb-12 sm:mb-16 max-w-3xl">
             <ScrollReveal direction="up">
               <span className="text-[0.6rem] sm:text-[0.65rem] font-mono uppercase tracking-[0.5em] text-brand-amber block mb-3">
-                02 Why Choose Us
+                {HOME_CONTENT.whyEyebrow}
               </span>
             </ScrollReveal>
             <ScrollReveal direction="up" delay={0.1}>
               <h2 className="text-display-xl uppercase text-foreground leading-[0.98]">
-                WHY CHOOSE <br />
-                <span className="italic text-gradient-gold">JOOZZ DESIGNING?</span>
+                {HOME_CONTENT.whyHeading}
               </h2>
             </ScrollReveal>
             <ScrollReveal direction="up" delay={0.2}>
               <p className="text-foreground-muted text-sm sm:text-base leading-relaxed mt-4 font-light max-w-2xl">
-                14+ years of professional design experience with a creative, reliable, and client-focused approach. We deliver high-quality designs with quick turnaround tailored to your business goals.
+                {HOME_CONTENT.whyDescription}
               </p>
             </ScrollReveal>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
-            {[
-              {
-                num: '01',
-                title: '14+ Years Experience',
-                desc: 'Over a decade of mastering typography, branding systems, and prepress standards across global industries.',
-              },
-              {
-                num: '02',
-                title: 'Client-Centric Craft',
-                desc: 'Direct collaboration with the principal designer from discovery to delivery without layers of middle management.',
-              },
-              {
-                num: '03',
-                title: 'Quick Turnaround',
-                desc: 'Fast, dependable production cycles tailored to tight marketing launches and commercial print deadlines.',
-              },
-              {
-                num: '04',
-                title: 'Press-Ready Precision',
-                desc: 'Zero printer rejections. Flawless CMYK spot color separations, bleed precision, and infinite-resolution vectors.',
-              },
-            ].map((feature, idx) => (
-              <ScrollReveal key={feature.num} direction="up" delay={idx * 0.08}>
+            {HOME_CONTENT.whyPoints.map((feature, idx) => (
+              <ScrollReveal key={feature.number} direction="up" delay={idx * 0.08}>
                 <div className="p-7 rounded-2xl surface-card spotlight-card h-full flex flex-col justify-between group">
                   <div>
                     <span className="font-mono text-xs text-brand-amber font-semibold block mb-4">
-                      {feature.num}
+                      {feature.number}
                     </span>
                     <h3 className="font-display font-bold text-base sm:text-lg uppercase tracking-wider text-foreground mb-3 group-hover:text-brand-amber transition-colors">
                       {feature.title}
                     </h3>
                     <p className="text-xs text-foreground-muted leading-relaxed font-light">
-                      {feature.desc}
+                      {feature.description}
                     </p>
                   </div>
                   <div className="bracket-tl" />
@@ -390,18 +377,13 @@ export const HomePage: React.FC = () => {
       {/* ———————————————————————————————————————————————————————— 
           SECTION 4: AWWWARDS-STYLE STAT COUNTERS
           ————————————————————————————————————————————————————————  */}
-      <section className="py-20 border-y border-white/[0.04] bg-surface-1 relative overflow-hidden">
+      <section className={`${HOME_CONTENT.sectionVisibility.stats === false ? 'hidden ' : ''}py-20 border-y border-white/[0.04] bg-surface-1 relative overflow-hidden`}>
         {/* Ambient glow */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_100%,rgba(232,166,76,0.06),transparent_60%)] pointer-none" />
 
         <div className="max-w-7xl mx-auto px-8 sm:px-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
-            {[
-              { value: '14+', label: 'Years of Craft' },
-              { value: '300+', label: 'Brand Identities' },
-              { value: '100%', label: 'Press-Ready Output' },
-              { value: '5', label: 'Design Disciplines' },
-            ].map((s, i) => (
+            {STATS.map((s, i) => (
               <AnimStat key={i} value={s.value} label={s.label} index={i} />
             ))}
           </div>
@@ -411,30 +393,29 @@ export const HomePage: React.FC = () => {
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           SECTION 5: SERVICES GRID (numbered disciplines)
           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-      <section className="py-20 sm:py-28 lg:py-36 max-w-7xl mx-auto px-5 sm:px-10">
+      <section className={`${HOME_CONTENT.sectionVisibility.services === false ? 'hidden ' : ''}py-20 sm:py-28 lg:py-36 max-w-7xl mx-auto px-5 sm:px-10`}>
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 sm:mb-16 gap-6">
           <div>
             <ScrollReveal direction="up">
               <span className="text-[0.6rem] sm:text-[0.65rem] font-mono uppercase tracking-[0.5em] text-brand-amber block mb-3 sm:mb-4">
-                03 Core Disciplines
+                {HOME_CONTENT.servicesEyebrow}
               </span>
             </ScrollReveal>
             <ScrollReveal direction="up" delay={0.1}>
               <h2 className="text-display-xl uppercase text-foreground leading-[0.95]">
-                End-to-end design &<br />
-                <span className="italic text-gradient-gold">press production.</span>
+                {HOME_CONTENT.servicesHeading}
               </h2>
             </ScrollReveal>
           </div>
           <ScrollReveal direction="up" delay={0.2}>
             <Link to="/services" className="btn-outline shrink-0 w-fit inline-flex items-center gap-2">
-              All 5 Services <ArrowRight className="w-3.5 h-3.5" />
+              {HOME_CONTENT.servicesCtaText} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </ScrollReveal>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {CORE_SERVICES.map((service, idx) => (
+          {CORE_SERVICES.filter((service) => service.visible !== false).map((service, idx) => (
             <ServiceCard key={service.id} service={service} index={idx} />
           ))}
         </div>
@@ -443,25 +424,24 @@ export const HomePage: React.FC = () => {
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           SECTION 6: PORTFOLIO PREVIEW (Awwwards gallery grid)
           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-      <section className="py-28 sm:py-36 bg-surface-1 border-t border-white/[0.04]">
+      <section className={`${HOME_CONTENT.sectionVisibility.portfolio === false ? 'hidden ' : ''}py-28 sm:py-36 bg-surface-1 border-t border-white/[0.04]`}>
         <div className="max-w-7xl mx-auto px-8 sm:px-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
               <ScrollReveal direction="up">
                 <span className="text-[0.6rem] font-mono uppercase tracking-[0.5em] text-brand-amber block mb-4">
-                  04 Selected Works
+                  {HOME_CONTENT.portfolioEyebrow}
                 </span>
               </ScrollReveal>
               <ScrollReveal direction="up" delay={0.1}>
                 <h2 className="text-display-xl uppercase text-foreground">
-                  Selected identity &<br />
-                  <span className="italic text-gradient-gold">editorial projects.</span>
+                  {HOME_CONTENT.portfolioHeading}
                 </h2>
               </ScrollReveal>
             </div>
             <ScrollReveal direction="up" delay={0.2}>
               <Link to="/portfolio" className="btn-amber shrink-0">
-                View Full Archive <ArrowUpRight className="w-3.5 h-3.5" />
+                {HOME_CONTENT.portfolioCtaText} <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </ScrollReveal>
           </div>
@@ -477,14 +457,7 @@ export const HomePage: React.FC = () => {
                 >
                   {/* Visual block */}
                   <div className={`aspect-[4/3] bg-gradient-to-br ${item.imagePlaceholderColor} relative overflow-hidden`}>
-                    {item.imageUrl && (
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 filter brightness-90 contrast-105"
-                        loading="lazy"
-                      />
-                    )}
+                    {(item.thumbnail || item.imageUrl) && <HomePortfolioImage src={item.thumbnail || item.imageUrl || ''} alt={item.title} />}
                     {/* Hover overlay */}
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/50 transition-all duration-500 flex items-center justify-center">
                       <div className="opacity-0 group-hover:opacity-100 transition-all duration-400 delay-100 transform translate-y-3 group-hover:translate-y-0">
@@ -527,7 +500,7 @@ export const HomePage: React.FC = () => {
       {/* ──────────────────────────────────────────────────────────────────────── 
           SECTION 7: CLIENT REVIEWS & ENDORSEMENTS (Interactive Slider)
           ────────────────────────────────────────────────────────────────────────  */}
-      <section className="py-24 sm:py-32 bg-[#09090c] border-y border-white/[0.05] relative overflow-hidden">
+      <section className={`${HOME_CONTENT.sectionVisibility.reviews === false ? 'hidden ' : ''}py-24 sm:py-32 bg-[#09090c] border-y border-white/[0.05] relative overflow-hidden`}>
         {/* Subtle background glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-brand-amber/[0.03] rounded-full blur-3xl pointer-events-none" />
 
@@ -537,20 +510,19 @@ export const HomePage: React.FC = () => {
             <div>
               <ScrollReveal direction="up">
                 <span className="text-[0.65rem] font-mono tracking-[0.45em] text-brand-amber uppercase block mb-3 font-semibold">
-                  CLIENT ENDORSEMENTS
+                  {HOME_CONTENT.reviewsEyebrow}
                 </span>
               </ScrollReveal>
               <ScrollReveal direction="up" delay={0.1}>
                 <h2 className="text-display-xl uppercase text-foreground leading-[0.98]">
-                  WHAT FOUNDERS &<br />
-                  <span className="text-gradient-gold">DIRECTORS SAY</span>
+                  {HOME_CONTENT.reviewsHeading}
                 </h2>
               </ScrollReveal>
             </div>
 
             <div className="flex items-center gap-4">
               <p className="hidden md:block text-xs text-foreground-muted max-w-xs font-light leading-relaxed text-right">
-                Real feedback from brand founders & creative directors.
+                {HOME_CONTENT.reviewsDescription}
               </p>
 
               {/* Slider Arrow Buttons */}
@@ -666,7 +638,7 @@ export const HomePage: React.FC = () => {
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           SECTION 7: LARGE PULL-QUOTE (Awwwards style)
           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-      <section className="py-24 sm:py-36 max-w-7xl mx-auto px-8 sm:px-10">
+      <section className={`${HOME_CONTENT.sectionVisibility.quote === false ? 'hidden ' : ''}py-24 sm:py-36 max-w-7xl mx-auto px-8 sm:px-10`}>
         <ScrollReveal direction="up">
           <div className="relative max-w-4xl mx-auto text-center">
             <div className="text-[5rem] sm:text-[7rem] font-display text-brand-amber/15 leading-none absolute -top-8 sm:-top-10 left-1/2 -translate-x-1/2 no-select pointer-events-none">
@@ -689,41 +661,40 @@ export const HomePage: React.FC = () => {
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           SECTION 8: CTA BAND (full-width bold)
           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-      <section className="relative py-28 sm:py-36 overflow-hidden bg-surface-1 border-t border-white/[0.04]">
+      <section className={`${HOME_CONTENT.sectionVisibility.finalCta === false ? 'hidden ' : ''}relative py-28 sm:py-36 overflow-hidden bg-surface-1 border-t border-white/[0.04]`}>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(232,166,76,0.07),transparent_70%)] pointer-none" />
         <div className="absolute inset-0 dot-grid opacity-40 pointer-none" />
 
         {/* Giant BG text */}
         <div className="absolute inset-0 flex items-center justify-center overflow-hidden no-select pointer-none">
           <span className="text-[18vw] font-display font-extrabold uppercase text-white/[0.025] tracking-tight whitespace-nowrap">
-            LET'S BUILD
+            {HOME_CONTENT.finalBackgroundText}
           </span>
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-8 sm:px-10 text-center space-y-8">
           <ScrollReveal direction="up">
             <span className="text-[0.6rem] font-mono tracking-[0.5em] text-brand-amber uppercase">
-              Have a Project in Mind?
+              {HOME_CONTENT.finalEyebrow}
             </span>
           </ScrollReveal>
           <ScrollReveal direction="up" delay={0.1}>
             <h2 className="text-display-xl uppercase text-foreground">
-              Let's create something<br />
-              <span className="text-gradient-gold">unforgettable</span> together.
+              {HOME_CONTENT.finalCta}
             </h2>
           </ScrollReveal>
           <ScrollReveal direction="up" delay={0.2}>
             <p className="text-foreground-muted text-sm max-w-lg mx-auto leading-relaxed">
-              Direct collaboration with senior design expertise. Fast turnarounds, bespoke craftsmanship, and guaranteed press-ready excellence.
+              {HOME_CONTENT.finalDescription}
             </p>
           </ScrollReveal>
           <ScrollReveal direction="up" delay={0.3}>
             <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 pt-4">
-              <Link to="/contact" className="btn-amber">
-                Request a Proposal <ArrowUpRight className="w-3.5 h-3.5" />
+              <Link to={HOME_CONTENT.finalCtaLink} className="btn-amber">
+                {HOME_CONTENT.finalCtaText} <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
               <a href={`mailto:${STUDIO_INFO.email}`} className="btn-outline">
-                Direct Email
+                {HOME_CONTENT.finalSecondaryText}
               </a>
             </div>
           </ScrollReveal>

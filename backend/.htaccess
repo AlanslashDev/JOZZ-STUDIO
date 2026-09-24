@@ -1,0 +1,10 @@
+Options -Indexes
+
+# The production document root should be backend/public. This deny layer also
+# protects the project if a host accidentally points Apache at backend/.
+RewriteEngine On
+RewriteRule ^(?:app|config|database|scripts|storage)(?:/|$) - [F,L,NC]
+
+<FilesMatch "^(?:\.env(?:\..*)?|composer\.(?:json|lock)|.*\.sql)$">
+    Require all denied
+</FilesMatch>

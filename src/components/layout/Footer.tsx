@@ -1,15 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Mail, Phone, MapPin, ArrowUp } from 'lucide-react';
-import { NAVIGATION_ITEMS, STUDIO_INFO } from '../../data/content';
+import { NAVIGATION_ITEMS, STUDIO_INFO, GLOBAL_CONTENT } from '../../data/content';
 
 const getNavColumns = () => [
   {
-    title: 'Studio',
+    title: GLOBAL_CONTENT.studioLinksHeading,
     links: NAVIGATION_ITEMS.filter((item) => item.location === 'footer_studio' && item.visible).map((item) => ({ label: item.label, path: item.url })),
   },
   {
-    title: 'Disciplines',
+    title: GLOBAL_CONTENT.disciplinesLinksHeading,
     links: NAVIGATION_ITEMS.filter((item) => item.location === 'footer_disciplines' && item.visible).map((item) => ({ label: item.label, path: item.url })),
   },
 ];
@@ -25,7 +25,7 @@ export const Footer: React.FC = () => {
         <div className="max-w-7xl mx-auto px-8 sm:px-10 py-12">
           <div className="flex items-end justify-between gap-6">
             <h2 className="font-editorial text-[clamp(3rem,10vw,8rem)] font-thin italic leading-none text-foreground/[0.06] no-select tracking-tighter">
-              JOOZZ DESIGNING
+              {STUDIO_INFO.brandName}
             </h2>
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -45,19 +45,18 @@ export const Footer: React.FC = () => {
           {/* Brand column */}
           <div className="md:col-span-5 space-y-6">
             <Link to="/" className="inline-flex items-center gap-3 group">
-              <img src="/logo.png" alt="Joozz Designing" className="h-8 sm:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+              <img src={GLOBAL_CONTENT.logo} alt={STUDIO_INFO.brandName} className="h-8 sm:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
               <div className="flex flex-col leading-none">
-                <span className="font-display text-[11px] tracking-[0.15em] text-foreground font-semibold uppercase">JOOZZ</span>
-                <span className="font-mono text-[9px] tracking-ultra text-foreground-subtle">STUDIO UK</span>
+                <span className="font-display text-[11px] tracking-[0.15em] text-foreground font-semibold uppercase">{GLOBAL_CONTENT.brandLabel}</span>
+                <span className="font-mono text-[9px] tracking-ultra text-foreground-subtle">{GLOBAL_CONTENT.brandLocation}</span>
               </div>
             </Link>
             <p className="text-foreground-muted text-sm leading-relaxed max-w-xs">
-              Independent graphic design, brand architecture, and visual storytelling.
-              Chelmsford & London, United Kingdom.
+              {GLOBAL_CONTENT.footerDescription}
             </p>
             <div className="flex items-center gap-2 text-[11px] font-mono text-foreground-subtle">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Available for New Brand Projects</span>
+              <span>{GLOBAL_CONTENT.availabilityText}</span>
             </div>
           </div>
 
@@ -82,7 +81,7 @@ export const Footer: React.FC = () => {
 
           {/* Contact info */}
           <div className="md:col-span-3 space-y-5">
-            <h4 className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber">Get in Touch</h4>
+            <h4 className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber">{GLOBAL_CONTENT.contactHeading}</h4>
             <ul className="space-y-3">
               <li>
                 <a href={`mailto:${STUDIO_INFO.email}`} className="flex items-start gap-2 text-[13px] text-foreground-muted hover:text-brand-amber transition-colors group">
@@ -114,10 +113,10 @@ export const Footer: React.FC = () => {
 
         {/* Bottom bar */}
         <div className="mt-16 pt-6 border-t border-white/[0.05] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[11px] font-mono text-foreground-subtle">
-          <span>© {year} Joozz Designing. All Rights Reserved.</span>
+          <span>© {year} {GLOBAL_CONTENT.copyrightText}</span>
           <div className="flex items-center gap-6">
-            <span>Chelmsford, Essex · London WC2H 9JQ</span>
-            <span>UK Registered Design Studio</span>
+            <span>{GLOBAL_CONTENT.footerLocationText}</span>
+            <span>{GLOBAL_CONTENT.footerRegistrationText}</span>
           </div>
         </div>
       </div>

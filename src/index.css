@@ -446,3 +446,15 @@
    ───────────────────────────────────────── */
 .no-select { user-select: none; -webkit-user-select: none; }
 .pointer-none { pointer-events: none; }
+
+/* The CMS preview can be narrower than the desktop breakpoint. Use the native
+   pointer there so a mouse cursor never disappears in tablet/mobile preview. */
+html.cms-preview-root body { cursor: auto; }
+html.cms-preview-root .custom-cursor { display: none !important; }
+html.cms-preview-root a,
+html.cms-preview-root button,
+html.cms-preview-root [data-cursor],
+html.cms-preview-root select,
+html.cms-preview-root label { cursor: pointer; }
+html.cms-preview-root input,
+html.cms-preview-root textarea { cursor: text; }

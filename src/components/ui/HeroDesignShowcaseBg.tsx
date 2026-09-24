@@ -5,17 +5,17 @@ import { InteractiveCanvas } from './InteractiveCanvas';
 const BANNER_VIDEOS = [
   {
     id: 1,
-    src: '/13583272-hd_1920_1080_60fps - Trim-compressed.mp4',
+    src: '/media/home/13583272-hd_1920_1080_60fps - Trim-compressed.mp4',
     title: 'Creative Reel 01',
   },
   {
     id: 2,
-    src: '/5092427-hd_1920_1080_30fps - Trim.mp4',
+    src: '/media/home/5092427-hd_1920_1080_30fps - Trim.mp4',
     title: 'Production Reel 02',
   },
   {
     id: 3,
-    src: '/7598770-hd_1920_1080_30fps - Trim-compressed.mp4',
+    src: '/media/home/7598770-hd_1920_1080_30fps - Trim-compressed.mp4',
     title: 'Studio Reel 03',
   },
 ];

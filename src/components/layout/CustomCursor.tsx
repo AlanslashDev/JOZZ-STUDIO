@@ -48,7 +48,7 @@ export const CustomCursor: React.FC = () => {
     <>
       {/* Dot */}
       <motion.div
-        className="fixed top-0 left-0 rounded-full bg-white pointer-events-none z-[9998] hidden md:block"
+        className="custom-cursor fixed top-0 left-0 rounded-full bg-white pointer-events-none z-[9998] hidden md:block"
         animate={{
           x: pos.x - 4,
           y: pos.y - 4,
@@ -61,7 +61,7 @@ export const CustomCursor: React.FC = () => {
 
       {/* Outer ring / VIEW lens */}
       <motion.div
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9997] hidden md:flex items-center justify-center"
+        className="custom-cursor fixed top-0 left-0 rounded-full pointer-events-none z-[9997] hidden md:flex items-center justify-center"
         animate={{
           x: pos.x - offset,
           y: pos.y - offset,

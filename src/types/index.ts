@@ -5,6 +5,7 @@ export interface ServiceSubOffer {
 }
 
 export interface ServiceItem {
+  visible?: boolean;
   id: string;
   number: string;
   title: string;
@@ -39,6 +40,7 @@ export type PortfolioCategory =
   | 'Reels / Motion';
 
 export interface PortfolioItem {
+  visible?: boolean;
   id: string;
   title: string;
   category: PortfolioCategory;
@@ -94,6 +96,7 @@ export interface StudioInfo {
 }
 
 export interface TeamMember {
+  visible?: boolean;
   name: string;
   role?: string;
   image: string;

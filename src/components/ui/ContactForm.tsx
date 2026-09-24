@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
-import { CORE_SERVICES } from '../../data/content';
+import { CORE_SERVICES, CONTACT_CONTENT } from '../../data/content';
 import { ApiError, publicApi } from '../../lib/api';
 
 interface FormState {
@@ -23,13 +23,14 @@ interface FormErrors {
 }
 
 export const ContactForm: React.FC<{ initialService?: string }> = ({ initialService = '' }) => {
+  const copy = CONTACT_CONTENT.form;
   const [formData, setFormData] = useState<FormState>({
     name: '',
     email: '',
     phone: '',
     service: initialService || CORE_SERVICES[0]?.title || 'Logo Design',
-    budget: '£1,000 - £3,000',
-    timeline: 'Within 2-4 Weeks',
+    budget: copy.budgets[1] || copy.budgets[0] || '',
+    timeline: copy.timelines[1] || copy.timelines[0] || '',
     message: '',
   });
 
@@ -137,10 +138,10 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
         </div>
         <div className="space-y-2">
           <h3 className="font-editorial text-3xl font-semibold text-foreground">
-            Inquiry Received
+            {copy.successHeading}
           </h3>
           <p className="text-foreground-muted text-sm max-w-md mx-auto leading-relaxed">
-            Thank you, <span className="text-foreground font-semibold">{formData.name}</span>. Our studio will review your project requirements and respond within 24–48 hours with initial thoughts and availability.
+            Thank you, <span className="text-foreground font-semibold">{formData.name}</span>. {copy.successMessage}
           </p>
         </div>
         <div className="pt-4">
@@ -153,14 +154,14 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
                 email: '',
                 phone: '',
                 service: CORE_SERVICES[0]?.title || 'Logo Design',
-                budget: '£1,000 - £3,000',
-                timeline: 'Within 2-4 Weeks',
+                budget: copy.budgets[1] || copy.budgets[0] || '',
+                timeline: copy.timelines[1] || copy.timelines[0] || '',
                 message: '',
               });
             }}
             className="px-6 py-2.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-background border border-background-border text-foreground-muted hover:text-brand-amber hover:border-brand-amber/50 transition-colors"
           >
-            Send Another Message
+            {copy.resetText}
           </button>
         </div>
       </motion.div>
@@ -173,13 +174,13 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label htmlFor="name" className="block text-xs uppercase font-mono tracking-widest text-foreground-muted">
-            Your Name <span className="text-brand-coral">*</span>
+            {copy.nameLabel} <span className="text-brand-coral">*</span>
           </label>
           <input
             id="name"
             name="name"
             type="text"
-            placeholder="e.g. Eleanor Vance"
+            placeholder={copy.namePlaceholder}
             value={formData.name}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -196,13 +197,13 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
 
         <div className="space-y-2">
           <label htmlFor="email" className="block text-xs uppercase font-mono tracking-widest text-foreground-muted">
-            Email Address <span className="text-brand-coral">*</span>
+            {copy.emailLabel} <span className="text-brand-coral">*</span>
           </label>
           <input
             id="email"
             name="email"
             type="email"
-            placeholder="e.g. eleanor@studio.com"
+            placeholder={copy.emailPlaceholder}
             value={formData.email}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -222,13 +223,13 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label htmlFor="phone" className="block text-xs uppercase font-mono tracking-widest text-foreground-muted">
-            Phone / WhatsApp <span className="text-foreground-subtle text-[10px]">(Optional)</span>
+            {copy.phoneLabel} <span className="text-foreground-subtle text-[10px]">({copy.optionalLabel})</span>
           </label>
           <input
             id="phone"
             name="phone"
             type="tel"
-            placeholder="+44 7000 000000"
+            placeholder={copy.phonePlaceholder}
             value={formData.phone}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -245,7 +246,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
 
         <div className="space-y-2">
           <label htmlFor="service" className="block text-xs uppercase font-mono tracking-widest text-foreground-muted">
-            Project Type <span className="text-brand-coral">*</span>
+            {copy.serviceLabel} <span className="text-brand-coral">*</span>
           </label>
           <select
             id="service"
@@ -255,17 +256,12 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             onBlur={handleBlur}
             className="w-full px-4 py-3.5 rounded-xl bg-background border border-background-border focus:border-brand-amber text-foreground text-sm focus:outline-none transition-colors cursor-pointer"
           >
-            {CORE_SERVICES.map((srv) => (
+            {CORE_SERVICES.filter((srv) => srv.visible !== false).map((srv) => (
               <option key={srv.id} value={srv.title} className="bg-background-elevated text-foreground">
                 {srv.number} — {srv.title}
               </option>
             ))}
-            <option value="Complete Design Retainer" className="bg-background-elevated text-foreground">
-              Ongoing Creative Retainer
-            </option>
-            <option value="Custom Project" className="bg-background-elevated text-foreground">
-              Other / Custom Project
-            </option>
+            {copy.extraServices.map((service) => <option key={service} value={service} className="bg-background-elevated text-foreground">{service}</option>)}
           </select>
         </div>
       </div>
@@ -274,7 +270,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label htmlFor="budget" className="block text-xs uppercase font-mono tracking-widest text-foreground-muted">
-            Estimated Budget
+            {copy.budgetLabel}
           </label>
           <select
             id="budget"
@@ -284,16 +280,13 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             onBlur={handleBlur}
             className="w-full px-4 py-3.5 rounded-xl bg-background border border-background-border focus:border-brand-amber text-foreground text-sm focus:outline-none transition-colors cursor-pointer"
           >
-            <option value="Under £1,000" className="bg-background-elevated text-foreground">Under £1,000</option>
-            <option value="£1,000 - £3,000" className="bg-background-elevated text-foreground">£1,000 – £3,000</option>
-            <option value="£3,000 - £6,000" className="bg-background-elevated text-foreground">£3,000 – £6,000</option>
-            <option value="£6,000+" className="bg-background-elevated text-foreground">£6,000+</option>
+            {copy.budgets.map((budget) => <option key={budget} value={budget} className="bg-background-elevated text-foreground">{budget}</option>)}
           </select>
         </div>
 
         <div className="space-y-2">
           <label htmlFor="timeline" className="block text-xs uppercase font-mono tracking-widest text-foreground-muted">
-            Target Timeline
+            {copy.timelineLabel}
           </label>
           <select
             id="timeline"
@@ -303,10 +296,7 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
             onBlur={handleBlur}
             className="w-full px-4 py-3.5 rounded-xl bg-background border border-background-border focus:border-brand-amber text-foreground text-sm focus:outline-none transition-colors cursor-pointer"
           >
-            <option value="Urgent (Within 1-2 Weeks)" className="bg-background-elevated text-foreground">Urgent (Within 1–2 Weeks)</option>
-            <option value="Within 2-4 Weeks" className="bg-background-elevated text-foreground">Within 2–4 Weeks</option>
-            <option value="Next 1-2 Months" className="bg-background-elevated text-foreground">Next 1–2 Months</option>
-            <option value="Flexible / Planning" className="bg-background-elevated text-foreground">Flexible / In Planning</option>
+            {copy.timelines.map((timeline) => <option key={timeline} value={timeline} className="bg-background-elevated text-foreground">{timeline}</option>)}
           </select>
         </div>
       </div>
@@ -314,13 +304,13 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
       {/* Message */}
       <div className="space-y-2">
         <label htmlFor="message" className="block text-xs uppercase font-mono tracking-widest text-foreground-muted">
-          Project Details & Objectives <span className="text-brand-coral">*</span>
+          {copy.messageLabel} <span className="text-brand-coral">*</span>
         </label>
         <textarea
           id="message"
           name="message"
           rows={5}
-          placeholder="Tell us about your brand, what deliverables you need, and any specific aesthetic inspirations..."
+          placeholder={copy.messagePlaceholder}
           value={formData.message}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -344,18 +334,18 @@ export const ContactForm: React.FC<{ initialService?: string }> = ({ initialServ
         {isSubmitting ? (
           <div className="flex items-center gap-2">
             <span className="w-4 h-4 border-2 border-background border-t-transparent rounded-full animate-spin"></span>
-            <span>Transmitting Details...</span>
+            <span>{copy.submittingText}</span>
           </div>
         ) : (
           <>
-            <span>Send Project Inquiry</span>
+            <span>{copy.submitText}</span>
             <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </>
         )}
       </button>
 
       <p className="text-[11px] font-mono text-foreground-subtle text-center">
-        Direct response within 24–48 hours. No middle management.
+        {copy.responseNote}
       </p>
       {submitError && (
         <p role="alert" className="text-xs text-brand-coral text-center">

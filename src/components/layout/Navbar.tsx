@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
-import { STUDIO_INFO, CORE_SERVICES, NAVIGATION_ITEMS } from '../../data/content';
+import { STUDIO_INFO, CORE_SERVICES, NAVIGATION_ITEMS, GLOBAL_CONTENT } from '../../data/content';
 
 const getNavLinks = () => NAVIGATION_ITEMS
   .filter((item) => item.location === 'header' && item.visible)
@@ -12,6 +12,8 @@ export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const headerNav = NAVIGATION_ITEMS.filter((item) => item.location === 'header' && item.visible);
+  const navItem = (path: string, fallback: string) => ({ label: headerNav.find((item) => item.url === path)?.label || fallback, visible: headerNav.some((item) => item.url === path) });
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 30);
@@ -38,16 +40,16 @@ export const Navbar: React.FC = () => {
         {/* Brand Logo */}
         <Link to="/" className="group flex items-center gap-3 z-50">
           <img
-            src="/logo.png"
-            alt="Joozz Designing"
+            src={GLOBAL_CONTENT.logo}
+            alt={STUDIO_INFO.brandName}
             className="h-8 sm:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
           />
           <div className="hidden sm:flex flex-col leading-none">
             <span className="font-display text-[11px] tracking-[0.15em] text-foreground font-semibold uppercase">
-              JOOZZ
+              {GLOBAL_CONTENT.brandLabel}
             </span>
             <span className="font-mono text-[9px] tracking-ultra text-foreground-subtle">
-              STUDIO UK
+              {GLOBAL_CONTENT.brandLocation}
             </span>
           </div>
         </Link>
@@ -57,31 +59,31 @@ export const Navbar: React.FC = () => {
           <NavLink
             to="/"
             className={({ isActive }) =>
-              `relative px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest rounded-full transition-all duration-300 ${
+              `${navItem('/', 'Home').visible ? '' : 'hidden '}relative px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest rounded-full transition-all duration-300 ${
                 isActive
                   ? 'bg-brand-amber text-background font-semibold'
                   : 'text-foreground-muted hover:text-foreground hover:bg-white/5'
               }`
             }
           >
-            Home
+            {navItem('/', 'Home').label}
           </NavLink>
           
           <NavLink
             to="/about"
             className={({ isActive }) =>
-              `relative px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest rounded-full transition-all duration-300 ${
+              `${navItem('/about', 'About').visible ? '' : 'hidden '}relative px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest rounded-full transition-all duration-300 ${
                 isActive
                   ? 'bg-brand-amber text-background font-semibold'
                   : 'text-foreground-muted hover:text-foreground hover:bg-white/5'
               }`
             }
           >
-            About
+            {navItem('/about', 'About').label}
           </NavLink>
 
           {/* Services dropdown */}
-          <div className="relative group/dropdown">
+          <div className={`${navItem('/services', 'Services').visible ? '' : 'hidden '}relative group/dropdown`}>
             <NavLink
               to="/services"
               className={({ isActive }) =>
@@ -92,7 +94,7 @@ export const Navbar: React.FC = () => {
                 }`
               }
             >
-              <span>Our Services</span>
+              <span>{GLOBAL_CONTENT.servicesMenuLabel}</span>
               <svg className="w-3 h-3 transition-transform duration-300 group-hover/dropdown:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
@@ -104,9 +106,9 @@ export const Navbar: React.FC = () => {
                 to="/services"
                 className="block px-3.5 py-2.5 rounded-xl text-[11px] font-mono tracking-widest text-brand-amber uppercase hover:bg-brand-amber/10 transition-colors mb-1 border-b border-white/5 font-semibold"
               >
-                View All 5 Services →
+                {GLOBAL_CONTENT.servicesMenuAllText} →
               </Link>
-              {CORE_SERVICES.map((srv) => (
+              {CORE_SERVICES.filter((srv) => srv.visible !== false).map((srv) => (
                 <Link
                   key={srv.id}
                   to={`/services/${srv.id}`}
@@ -122,27 +124,27 @@ export const Navbar: React.FC = () => {
           <NavLink
             to="/portfolio"
             className={({ isActive }) =>
-              `relative px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest rounded-full transition-all duration-300 ${
+              `${navItem('/portfolio', 'Portfolio').visible ? '' : 'hidden '}relative px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest rounded-full transition-all duration-300 ${
                 isActive
                   ? 'bg-brand-amber text-background font-semibold'
                   : 'text-foreground-muted hover:text-foreground hover:bg-white/5'
               }`
             }
           >
-            Portfolio
+            {navItem('/portfolio', 'Portfolio').label}
           </NavLink>
 
           <NavLink
             to="/contact"
             className={({ isActive }) =>
-              `relative px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest rounded-full transition-all duration-300 ${
+              `${navItem('/contact', 'Contact').visible ? '' : 'hidden '}relative px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest rounded-full transition-all duration-300 ${
                 isActive
                   ? 'bg-brand-amber text-background font-semibold'
                   : 'text-foreground-muted hover:text-foreground hover:bg-white/5'
               }`
             }
           >
-            Contact
+            {navItem('/contact', 'Contact').label}
           </NavLink>
         </nav>
 
@@ -152,7 +154,7 @@ export const Navbar: React.FC = () => {
             to="/contact"
             className="hidden sm:inline-flex btn-amber text-[11px] py-2 px-5"
           >
-            Start Project <ArrowUpRight className="w-3 h-3" />
+            {GLOBAL_CONTENT.startProjectText} <ArrowUpRight className="w-3 h-3" />
           </Link>
 
           <button
@@ -215,7 +217,7 @@ export const Navbar: React.FC = () => {
               className="space-y-4 pt-4 shrink-0 border-t border-white/[0.08]"
             >
               <div>
-                <div className="text-[10px] font-mono uppercase tracking-widest text-foreground-subtle mb-1">Direct UK Line:</div>
+                <div className="text-[10px] font-mono uppercase tracking-widest text-foreground-subtle mb-1">{GLOBAL_CONTENT.mobilePhoneLabel}</div>
                 <a href={`tel:${STUDIO_INFO.phoneUK}`} className="text-brand-amber font-mono text-sm">
                   {STUDIO_INFO.phoneUK}
                 </a>
@@ -225,7 +227,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full btn-amber justify-center text-xs tracking-widest uppercase py-3"
               >
-                Request a Proposal
+                {GLOBAL_CONTENT.startProjectText}
               </Link>
             </motion.div>
           </motion.div>

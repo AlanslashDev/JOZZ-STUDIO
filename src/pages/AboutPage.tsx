@@ -70,6 +70,19 @@ const TOOLS_OF_CRAFT = [
   }
 ];
 
+const TOOL_ICON_MAP: Record<string, { icon: React.ElementType; color: string }> = {
+  PenTool: { icon: PenTool, color: 'text-amber-400' },
+  Palette: { icon: Palette, color: 'text-sky-400' },
+  BookOpen: { icon: BookOpen, color: 'text-rose-400' },
+  Camera: { icon: Camera, color: 'text-cyan-400' },
+  Printer: { icon: Printer, color: 'text-emerald-400' },
+  Layers: { icon: Layers, color: 'text-orange-400' },
+  Sliders: { icon: Sliders, color: 'text-violet-400' },
+  Compass: { icon: Compass, color: 'text-blue-400' },
+  Cpu: { icon: Cpu, color: 'text-teal-400' },
+  Feather: { icon: Feather, color: 'text-pink-400' },
+};
+
 const MANIFESTO_POINTS = [
   {
     number: '01',
@@ -97,7 +110,7 @@ export const AboutPage: React.FC = () => {
   return (
     <div className="pt-24 sm:pt-32 pb-24 max-w-7xl mx-auto px-5 sm:px-10">
       {/* 1. HERO / INTRO */}
-      <section className="mb-24">
+      <section className={`${ABOUT_CONTENT.sectionVisibility.hero === false ? 'hidden ' : ''}mb-24`}>
         <ScrollReveal direction="up" delay={0.1}>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-brand-amber/10 border border-brand-amber/20 text-[0.6rem] font-mono tracking-[0.5em] uppercase text-brand-amber mb-6">
             <span>ABOUT US</span>
@@ -114,7 +127,7 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* 2. FOUNDER DEEP DIVE */}
-      <section className="py-20 border-y border-white/[0.05]">
+      <section className={`${ABOUT_CONTENT.sectionVisibility.story === false ? 'hidden ' : ''}py-20 border-y border-white/[0.05]`}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           {/* Visual Column / Founder Slot */}
           <div className="lg:col-span-5">
@@ -122,7 +135,7 @@ export const AboutPage: React.FC = () => {
               <div className="relative aspect-[4/5] rounded-3xl surface-card overflow-hidden group spotlight-card border border-white/10 shadow-2xl">
                 {/* Full Bleed Image Filling the Entire Box Edge-to-Edge */}
                 <img
-                  src="/founder-workspace.jpg"
+                  src={ABOUT_CONTENT.founderImage}
                   alt="Joozz Designing — Studio Workspace & Setup"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
@@ -137,36 +150,28 @@ export const AboutPage: React.FC = () => {
           <div className="lg:col-span-7 space-y-8">
             <div>
               <span className="text-[0.6rem] font-mono uppercase tracking-[0.5em] text-brand-amber block mb-3">
-                01 THE STORY
+                {ABOUT_CONTENT.storyEyebrow}
               </span>
               <h2 className="text-display-lg uppercase font-thin text-foreground">
-                14+ Years of <span className="text-gradient-gold">Design Craft & Purpose.</span>
+                {ABOUT_CONTENT.storyHeading}
               </h2>
             </div>
 
             <div className="space-y-4 text-foreground-muted text-base leading-relaxed font-light">
-              <p>
-                With over 14 years of dedicated industry experience, Joozz Designing has partnered with ambitious businesses, founders, and enterprises across the United Kingdom and globally to shape powerful brand narratives.
-              </p>
-              <p>
-                From initial custom logo concepts and corporate branding to complex magazine layouts, packaging, and digital marketing visuals, every project is crafted with creativity, precision, and relentless attention to detail.
-              </p>
-              <p>
-                Working across the industry-standard Adobe Creative Suite, we ensure every deliverable bridges digital vibrancy with flawless prepress production.
-              </p>
+              {ABOUT_CONTENT.storyParagraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
             </div>
 
             {/* Core Pillars */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div className="p-6 rounded-2xl surface-card spotlight-card">
                 <Layers className="w-5 h-5 text-brand-amber mb-3" />
-                <h4 className="font-semibold text-sm text-foreground mb-1 font-editorial">No Middle Management</h4>
-                <p className="text-xs text-foreground-muted leading-relaxed">Direct collaboration with the principal designer from discovery to delivery.</p>
+                <h4 className="font-semibold text-sm text-foreground mb-1 font-editorial">{ABOUT_CONTENT.storyPillars[0]?.title}</h4>
+                <p className="text-xs text-foreground-muted leading-relaxed">{ABOUT_CONTENT.storyPillars[0]?.description}</p>
               </div>
               <div className="p-6 rounded-2xl surface-card spotlight-card">
                 <Award className="w-5 h-5 text-brand-coral mb-3" />
-                <h4 className="font-semibold text-sm text-foreground mb-1 font-editorial">Press-Ready Precision</h4>
-                <p className="text-xs text-foreground-muted leading-relaxed">Flawless color separation, bleeds, and vector master deliverables.</p>
+                <h4 className="font-semibold text-sm text-foreground mb-1 font-editorial">{ABOUT_CONTENT.storyPillars[1]?.title}</h4>
+                <p className="text-xs text-foreground-muted leading-relaxed">{ABOUT_CONTENT.storyPillars[1]?.description}</p>
               </div>
             </div>
           </div>
@@ -174,18 +179,18 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* 3. DESIGN MANIFESTO */}
-      <section className="py-28">
+      <section className={`${ABOUT_CONTENT.sectionVisibility.manifesto === false ? 'hidden ' : ''}py-28`}>
         <div className="mb-14">
           <span className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber block mb-3">
-            02 DESIGN MANIFESTO
+            {ABOUT_CONTENT.manifestoEyebrow}
           </span>
           <h2 className="text-display-lg uppercase font-thin text-foreground">
-            The core principles that <span className="italic text-gradient-gold">guide our studio.</span>
+            {ABOUT_CONTENT.manifestoHeading}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {MANIFESTO_POINTS.map((point, idx) => (
+          {ABOUT_CONTENT.manifestoPoints.map((point, idx) => (
             <ScrollReveal key={point.number} direction="up" delay={idx * 0.08}>
               <div className="p-8 rounded-2xl surface-card spotlight-card h-full flex flex-col justify-between group">
                 <div>
@@ -208,25 +213,27 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* 4. TOOLS OF CRAFT */}
-      <section className="py-24 border-y border-white/[0.05]">
+      <section className={`${ABOUT_CONTENT.sectionVisibility.tools === false ? 'hidden ' : ''}py-24 border-y border-white/[0.05]`}>
         <div className="mb-14">
           <span className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber block mb-3">
-            03 TOOLS OF THE TRADE
+            {ABOUT_CONTENT.toolsEyebrow}
           </span>
           <h2 className="text-display-lg uppercase font-thin text-foreground">
-            Deep mastery in <span className="italic text-gradient-gold">Adobe Creative Suite & prepress.</span>
+            {ABOUT_CONTENT.toolsHeading}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {TOOLS_OF_CRAFT.map((tool, idx) => {
-            const Icon = tool.icon;
+          {ABOUT_CONTENT.tools.map((tool, idx) => {
+            const iconChoice = TOOL_ICON_MAP[tool.iconName] || TOOLS_OF_CRAFT[idx] || TOOL_ICON_MAP.PenTool;
+            const Icon = iconChoice.icon;
+            const color = iconChoice.color;
             return (
               <ScrollReveal key={tool.name} direction="up" delay={idx * 0.07}>
                 <div className="p-7 rounded-2xl surface-card spotlight-card space-y-3 group">
                   <div className="flex items-center justify-between">
                     <div className="w-10 h-10 rounded-xl bg-surface-2 flex items-center justify-center">
-                      <Icon className={`w-5 h-5 ${tool.color}`} />
+                      <Icon className={`w-5 h-5 ${color}`} />
                     </div>
                     <span className="text-[10px] font-mono uppercase tracking-widest text-foreground-subtle">
                       Craft Standard
@@ -251,13 +258,13 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* 5. FOUR-STEP PROCESS */}
-      <section className="py-24 border-t border-white/[0.05]">
+      <section className={`${ABOUT_CONTENT.sectionVisibility.process === false ? 'hidden ' : ''}py-24 border-t border-white/[0.05]`}>
         <div className="mb-14">
           <span className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber block mb-3">
-            04 CREATIVE PROCESS
+            {ABOUT_CONTENT.processEyebrow}
           </span>
           <h2 className="text-display-lg uppercase font-thin text-foreground">
-            From initial spark to <span className="italic text-gradient-gold">press-ready delivery.</span>
+            {ABOUT_CONTENT.processHeading}
           </h2>
         </div>
 
@@ -288,13 +295,13 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* 6. STUDIO LOCATION HUBS */}
-      <section className="py-20 border-t border-white/[0.05]">
+      <section className={`${ABOUT_CONTENT.sectionVisibility.locations === false ? 'hidden ' : ''}py-20 border-t border-white/[0.05]`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-8 rounded-2xl surface-card spotlight-card">
             <span className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber block mb-3">
-              Principal Studio Hub
+              {ABOUT_CONTENT.locationPrimaryLabel}
             </span>
-            <h4 className="font-display font-bold text-lg uppercase tracking-wider text-foreground mb-2">Chelmsford, Essex & London</h4>
+            <h4 className="font-display font-bold text-lg uppercase tracking-wider text-foreground mb-2">{ABOUT_CONTENT.locationPrimaryHeading}</h4>
             <p className="text-xs text-foreground-muted font-mono leading-relaxed mb-4">
               {STUDIO_INFO.registeredOffice}
             </p>
@@ -308,11 +315,11 @@ export const AboutPage: React.FC = () => {
 
           <div className="p-8 rounded-2xl surface-card spotlight-card">
             <span className="text-[10px] font-mono uppercase tracking-ultra text-brand-amber block mb-3">
-              International Line
+              {ABOUT_CONTENT.locationSecondaryLabel}
             </span>
-            <h4 className="font-display font-bold text-lg uppercase tracking-wider text-foreground mb-2">India Coordination Office</h4>
+            <h4 className="font-display font-bold text-lg uppercase tracking-wider text-foreground mb-2">{ABOUT_CONTENT.locationSecondaryHeading}</h4>
             <p className="text-xs text-foreground-muted font-mono leading-relaxed mb-4">
-              Direct remote line for overseas commissions and agile production cycles.
+              {ABOUT_CONTENT.locationSecondaryDescription}
             </p>
             <div className="flex items-center gap-3 text-xs font-mono text-brand-amber">
               <Phone className="w-3.5 h-3.5" />
@@ -325,28 +332,28 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* 7. PRODUCTION TEAM (The People) */}
-      <section className="py-24 sm:py-32 border-t border-white/[0.05]">
+      <section className={`${ABOUT_CONTENT.sectionVisibility.team === false ? 'hidden ' : ''}py-24 sm:py-32 border-t border-white/[0.05]`}>
         <div className="text-center max-w-2xl mx-auto mb-16 sm:mb-20">
           <ScrollReveal direction="up">
             <span className="text-[0.65rem] font-mono uppercase tracking-[0.45em] text-brand-amber block mb-3 font-semibold">
-              THE PEOPLE
+              {ABOUT_CONTENT.teamEyebrow}
             </span>
           </ScrollReveal>
           <ScrollReveal direction="up" delay={0.1}>
             <h2 className="text-display-xl uppercase text-foreground leading-tight tracking-wide">
-              PRODUCTION TEAM
+              {ABOUT_CONTENT.teamHeading}
             </h2>
           </ScrollReveal>
           <ScrollReveal direction="up" delay={0.2}>
             <p className="text-xs sm:text-sm text-foreground-muted leading-relaxed font-light mt-4">
-              Exceptional talent is the cornerstone of everything we create. Our team brings decades of combined experience in multimedia production.
+              {ABOUT_CONTENT.teamDescription}
             </p>
           </ScrollReveal>
         </div>
 
         {/* 5-Member Team Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-          {PRODUCTION_TEAM.map((member, idx) => (
+          {PRODUCTION_TEAM.filter((member) => member.visible !== false).map((member, idx) => (
             <ScrollReveal key={member.name} direction="up" delay={idx * 0.08}>
               <div className="group relative rounded-2xl bg-[#0d0d10] border border-white/[0.08] hover:border-brand-amber/40 transition-all duration-500 overflow-hidden flex flex-col items-center shadow-xl">
                 {/* Portrait container */}
@@ -365,6 +372,11 @@ export const AboutPage: React.FC = () => {
                   <h3 className="font-display font-bold text-sm sm:text-base uppercase tracking-[0.2em] text-foreground group-hover:text-brand-amber transition-colors duration-300">
                     {member.name}
                   </h3>
+                  {member.role && (
+                    <p className="mt-1.5 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.14em] text-foreground-muted">
+                      {member.role}
+                    </p>
+                  )}
                 </div>
 
                 {/* Corner brackets */}
@@ -377,16 +389,16 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* CTA */}
-      <section className="pt-20 text-center space-y-6">
+      <section className={`${ABOUT_CONTENT.sectionVisibility.finalCta === false ? 'hidden ' : ''}pt-20 text-center space-y-6`}>
         <h2 className="text-display-lg uppercase font-thin text-foreground">
-          Ready to elevate your brand with <span className="text-gradient-gold">Joozz Designing</span>?
+          {ABOUT_CONTENT.finalHeading}
         </h2>
         <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4">
           <Link to="/contact" className="btn-amber">
-            Inquire for Availability <ArrowUpRight className="w-3.5 h-3.5" />
+            {ABOUT_CONTENT.finalPrimaryText} <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
           <Link to="/portfolio" className="btn-outline">
-            Browse Archive
+            {ABOUT_CONTENT.finalSecondaryText}
           </Link>
         </div>
       </section>

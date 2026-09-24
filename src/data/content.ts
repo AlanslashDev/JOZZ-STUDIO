@@ -29,23 +29,23 @@ export const STUDIO_INFO: StudioInfo = {
 export const PRODUCTION_TEAM: TeamMember[] = [
   {
     name: "JUSTINE",
-    image: "/team-justine.jpg",
+    image: "/media/team/team-justine.jpg",
   },
   {
     name: "LORAINE",
-    image: "/team-loraine.jpg",
+    image: "/media/team/team-loraine.jpg",
   },
   {
     name: "JAIBIN",
-    image: "/team-jaibin.jpg",
+    image: "/media/team/team-jaibin.jpg",
   },
   {
     name: "PRASANTH",
-    image: "/team-prasanth.jpg",
+    image: "/media/team/team-prasanth.jpg",
   },
   {
     name: "LAJEESH",
-    image: "/team-lajeesh.jpg",
+    image: "/media/team/team-lajeesh.jpg",
   }
 ];
 
@@ -227,7 +227,7 @@ export const CORE_SERVICES: ServiceItem[] = [
     tagline: "High-quality print designs created with attention to detail",
     description:
       "Business cards & corporate stationery, brochures, flyers & leaflets, posters, banners & roll-ups, magazine & catalogue design, and premium packaging & label design.",
-    image: "/print-design.jpg",
+    image: "/media/portfolio/print-design.jpg",
     imageAlt: "Open editorial print magazine and catalogue layout design",
     deliverables: [
       "Business Cards & Corporate Stationery",
@@ -280,7 +280,7 @@ export const CORE_SERVICES: ServiceItem[] = [
     tagline: "Creative digital designs optimised for online platforms",
     description:
       "Social media posts & ad creatives, web banners & digital advertisements, presentation & pitch deck design, and high-converting email marketing visuals.",
-    image: "/digital-social-media.jpg",
+    image: "/media/portfolio/digital-social-media.jpg",
     imageAlt: "Instagram, Facebook, Messenger, and social media digital marketing visuals",
     deliverables: [
       "Social Media Posts & Ad Creatives",
@@ -470,7 +470,7 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     type: "video",
     // TODO(client): provide compressed .mp4 (H.264, under ~20MB) or embed link for Kinetic Brand Identity Motion Showcase
     thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80",
-    mediaUrl: "/5092427-hd_1920_1080_30fps - Trim.mp4",
+    mediaUrl: "/media/home/5092427-hd_1920_1080_30fps - Trim.mp4",
     isEmbed: false,
     client: "Joozz Motion Lab",
     year: "2024",
@@ -504,7 +504,7 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     type: "video",
     // TODO(client): provide compressed .mp4 (H.264, under ~20MB) or embed link for Editorial Fashion Lookbook Reel
     thumbnail: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80",
-    mediaUrl: "/7598770-hd_1920_1080_30fps - Trim-compressed.mp4",
+    mediaUrl: "/media/home/7598770-hd_1920_1080_30fps - Trim-compressed.mp4",
     isEmbed: false,
     client: "Maison Lopez Runway",
     year: "2024",
@@ -638,27 +638,174 @@ export const NAVIGATION_ITEMS = [
   { location: 'footer_disciplines', label: 'Fashion Photography', url: '/services', visible: true }
 ];
 
+export const PORTFOLIO_CATEGORIES: string[] = ['Logo Design', 'Branding', 'Brochures & Posters', 'Business Cards', 'Magazine Layout', 'Photography', 'Reels / Motion'];
+
 export const HOME_CONTENT = {
+  heroEyebrow: 'Joozz Designing Studio',
   heroHeading: 'WE DESIGN\nWITH PURPOSE\n& PRECISION.',
   heroSubheading: 'Boutique graphic design studio crafting distinctive brand identities, editorial layouts, and press-ready print media.',
   ctaText: 'VIEW WORK',
   ctaLink: '/portfolio',
+  secondaryCtaText: 'START A PROJECT',
+  secondaryCtaLink: '/contact',
+  heroTags: ['Brand Identity', 'Brochure Design', 'Business Cards', 'Magazine Layout', 'Print Media', 'Reels / Motion'],
+  featuredVideo: '/media/home/5092427-hd_1920_1080_30fps - Trim.mp4',
+  featuredVideoPoster: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1600&q=80',
+  featuredEyebrow: 'Kinetic Showcase',
+  featuredHeading: 'Our Work in Motion.',
+  featuredDescription: 'From dynamic logo reveals to high-energy editorial lookbooks—bringing brand stories to life with cinematic pacing and precision.',
+  featuredCtaText: 'See Full Portfolio',
+  featuredCtaLink: '/portfolio?filter=reel',
+  whyEyebrow: '02 Why Choose Us',
+  whyHeading: 'Why choose Joozz Designing?',
+  whyDescription: '14+ years of professional design experience with a creative, reliable, and client-focused approach. We deliver high-quality designs with quick turnaround tailored to your business goals.',
+  whyPoints: [
+    { number: '01', title: '14+ Years Experience', description: 'Over a decade of mastering typography, branding systems, and prepress standards across global industries.' },
+    { number: '02', title: 'Client-Centric Craft', description: 'Direct collaboration with the principal designer from discovery to delivery without layers of middle management.' },
+    { number: '03', title: 'Quick Turnaround', description: 'Fast, dependable production cycles tailored to tight marketing launches and commercial print deadlines.' },
+    { number: '04', title: 'Press-Ready Precision', description: 'Zero printer rejections. Flawless CMYK spot color separations, bleed precision, and infinite-resolution vectors.' },
+  ],
+  servicesEyebrow: '03 Core Disciplines',
+  servicesHeading: 'End-to-end design & press production.',
+  servicesCtaText: 'All services',
+  portfolioEyebrow: '04 Selected Works',
+  portfolioHeading: 'Selected identity & editorial projects.',
+  portfolioCtaText: 'View Full Archive',
+  featuredPortfolioIds: ['p1', 'r1', 'p2', 'r2', 'p3', 'p4'],
+  reviewsEyebrow: 'Client Endorsements',
+  reviewsHeading: 'What founders & directors say',
+  reviewsDescription: 'Real feedback from brand founders & creative directors.',
+  aboutEyebrow: 'About',
+  aboutHeading: 'Independent craft with direct collaboration.',
+  aboutButtonText: 'Discover the Studio',
+  aboutToolsText: 'Adobe Illustrator • Photoshop • InDesign',
+  finalEyebrow: 'Have a Project in Mind?',
+  finalBackgroundText: "LET'S BUILD",
+  finalDescription: 'Direct collaboration with senior design expertise. Fast turnarounds, bespoke craftsmanship, and guaranteed press-ready excellence.',
+  finalCtaText: 'Request a Proposal',
+  finalCtaLink: '/contact',
+  finalSecondaryText: 'Direct Email',
   introduction: 'Independent craft with direct collaboration.',
-  finalCta: 'Let’s build something remarkable.'
+  finalCta: 'Let’s build something remarkable.',
+  sectionVisibility: { hero: true, showcase: true, about: true, why: true, stats: true, services: true, portfolio: true, reviews: true, quote: true, finalCta: true },
 };
 
 export const ABOUT_CONTENT = {
   heading: 'ABOUT US',
   introduction: STUDIO_INFO.founderBio,
   ctaText: 'Start a project',
-  ctaLink: '/contact'
+  ctaLink: '/contact',
+  founderImage: '/media/about/founder-workspace.jpg',
+  storyEyebrow: '01 The Story',
+  storyHeading: '14+ Years of Design Craft & Purpose.',
+  storyParagraphs: [
+    'With over 14 years of dedicated industry experience, Joozz Designing has partnered with ambitious businesses, founders, and enterprises across the United Kingdom and globally to shape powerful brand narratives.',
+    'From initial custom logo concepts and corporate branding to complex magazine layouts, packaging, and digital marketing visuals, every project is crafted with creativity, precision, and relentless attention to detail.',
+    'Working across the industry-standard Adobe Creative Suite, we ensure every deliverable bridges digital vibrancy with flawless prepress production.',
+  ],
+  storyPillars: [
+    { title: 'No Middle Management', description: 'Direct collaboration with the principal designer from discovery to delivery.' },
+    { title: 'Press-Ready Precision', description: 'Flawless color separation, bleeds, and vector master deliverables.' },
+  ],
+  manifestoEyebrow: '02 Design Manifesto',
+  manifestoHeading: 'The core principles that guide our studio.',
+  manifestoPoints: [
+    { number: '01', title: 'Craft Over Templates', description: 'We never recycle off-the-shelf templates or generic presets. Every mark, layout, and color swatch is conceived uniquely for your brand narrative.' },
+    { number: '02', title: 'Typography as Voice', description: 'Typography is not just text—it is the voice and posture of your business. We obsess over kerning, line-height, hierarchy, and optical balance.' },
+    { number: '03', title: 'Longevity Over Micro-Trends', description: 'Design should endure. We construct identities that look fresh on day one and remain distinguished a decade later.' },
+    { number: '04', title: 'Flawless Physical Execution', description: 'A great concept is useless if it fails at the press. We guarantee zero errors across resolution, CMYK separations, and die-cuts.' },
+  ],
+  toolsEyebrow: '03 Tools of the Trade',
+  toolsHeading: 'Deep mastery in Adobe Creative Suite & prepress.',
+  tools: [
+    { iconName: 'PenTool', name: 'Adobe Illustrator', role: 'Vector Identity & Typography', description: 'Precision bezier curve construction, custom letterform drafting, and infinite-resolution logo systems.' },
+    { iconName: 'Palette', name: 'Adobe Photoshop', role: 'Art Direction & Retouching', description: 'High-end color grading, photographic composites, texture generation, and editorial mockups.' },
+    { iconName: 'BookOpen', name: 'Adobe InDesign', role: 'Publication & Editorial Grid', description: 'Master pages, strict Swiss grid systems, paragraph styling, and press-ready book or magazine imposition.' },
+    { iconName: 'Camera', name: 'Adobe Lightroom', role: 'Fashion & Campaign Grading', description: 'Tonal calibration, editorial lookbook styling, and consistent campaign palette development.' },
+    { iconName: 'Printer', name: 'Prepress Color Standards', role: 'CMYK & Pantone Precision', description: 'Spot color separations, bleed calibrations, die-line creation, and commercial printer coordination.' },
+    { iconName: 'Layers', name: 'Tactile Print Finishes', role: 'Material & Paper Engineering', description: 'Embossing, debossing, hot foil stamping, spot UV varnish, and heavy cotton or linen paper stock curation.' },
+  ],
+  processEyebrow: '04 Creative Process',
+  processHeading: 'From initial spark to press-ready delivery.',
+  locationPrimaryLabel: 'Principal Studio Hub',
+  locationPrimaryHeading: 'Chelmsford, Essex & London',
+  locationSecondaryLabel: 'International Line',
+  locationSecondaryHeading: 'India Coordination Office',
+  locationSecondaryDescription: 'Direct remote line for overseas commissions and agile production cycles.',
+  teamEyebrow: 'The People',
+  teamHeading: 'Production Team',
+  teamDescription: 'Exceptional talent is the cornerstone of everything we create. Our team brings decades of combined experience in multimedia production.',
+  finalHeading: 'Ready to elevate your brand with Joozz Designing?',
+  finalPrimaryText: 'Inquire for Availability',
+  finalSecondaryText: 'Browse Archive',
+  sectionVisibility: { hero: true, story: true, manifesto: true, tools: true, process: true, locations: true, team: true, finalCta: true },
 };
 
 export const CONTACT_CONTENT = {
   heading: "Tell us about your brand. Let's create something extraordinary.",
   introduction: 'Whether you need a full visual identity, high-finish print collateral, or an ongoing creative retainer, our team will get back to you directly with availability and next steps.',
-  responseTime: 'We respond to all project inquiries within 24 hours with a custom project proposal and scheduled kickoff date.'
+  formHeading: 'Project Inquiry Form',
+  formDescription: 'Fill in your requirements below for a detailed project estimate and timeline.',
+  contactsHeading: 'Direct Studio Contacts',
+  responseLabel: '48–72 hour concept turnaround',
+  responseTime: 'We respond to all project inquiries within 24 hours with a custom project proposal and scheduled kickoff date.',
+  faqEyebrow: '02 Frequently Asked Questions',
+  faqHeading: 'Clear answers on process, timelines & delivery.',
+  form: {
+    nameLabel: 'Your Name', namePlaceholder: 'e.g. Eleanor Vance',
+    emailLabel: 'Email Address', emailPlaceholder: 'e.g. eleanor@studio.com',
+    phoneLabel: 'Phone / WhatsApp', phonePlaceholder: '+44 7000 000000', optionalLabel: 'Optional',
+    serviceLabel: 'Project Type', budgetLabel: 'Estimated Budget', timelineLabel: 'Target Timeline',
+    messageLabel: 'Project Details & Objectives', messagePlaceholder: 'Tell us about your brand, what deliverables you need, and any specific aesthetic inspirations...',
+    submitText: 'Send Project Inquiry', submittingText: 'Transmitting Details...',
+    successHeading: 'Inquiry Received', successMessage: 'Thank you. Our studio will review your project requirements and respond within 24â€“48 hours with initial thoughts and availability.',
+    resetText: 'Send Another Message', responseNote: 'Direct response within 24â€“48 hours. No middle management.',
+    extraServices: ['Ongoing Creative Retainer', 'Other / Custom Project'],
+    budgets: ['Under Â£1,000', 'Â£1,000 - Â£3,000', 'Â£3,000 - Â£6,000', 'Â£6,000+'],
+    timelines: ['Urgent (Within 1-2 Weeks)', 'Within 2-4 Weeks', 'Next 1-2 Months', 'Flexible / Planning'],
+  },
+  sectionVisibility: { hero: true, form: true, faqs: true },
 };
+
+export const SERVICES_CONTENT = {
+  eyebrow: 'Our Services & Solutions',
+  heading: 'Design Solutions.',
+  highlightedHeading: 'Crafted with Precision.',
+  description: 'With over 14 years of professional experience, Joozz Designing delivers high-impact branding, print mastery, and digital design tailored to your strategic business goals.',
+  guaranteeEyebrow: 'Technical Excellence Guarantee',
+  guaranteeHeading: '100% Press-Ready & Vector Standards',
+  guaranteeDescription: 'We eliminate costly printer rejections. Every file pack includes clean spot color separations, Pantone matching, accurate 3mm+ bleeds, trimmed die-lines, and infinite-resolution master SVG/EPS/AI vector files.',
+  guaranteeButtonText: 'Discuss Your Specifications', guaranteeButtonLink: '/contact',
+  detailBackText: 'Back to Services', detailCtaText: 'Start a Project', detailCtaLink: '/contact',
+  offersEyebrow: 'Scope of Capabilities', offersHeading: 'What We Offer',
+  deliverablesEyebrow: 'Guaranteed Standard', deliverablesHeading: 'Core Deliverables',
+  deliverablesDescription: 'Every project includes full vector production master files, color-separated proofs, and direct technical printer coordination.',
+  finalHeading: 'Ready to Collaborate?',
+  finalDescription: 'Elevate your brand with 14+ years of bespoke design mastery, direct designer collaboration, and guaranteed press-ready excellence.',
+  finalPrimaryText: 'Get a Quote', finalPrimaryLink: '/contact', finalSecondaryText: 'View Portfolio', finalSecondaryLink: '/portfolio',
+  sectionVisibility: { hero: true, list: true, guarantee: true, offers: true, finalCta: true },
+};
+
+export const PORTFOLIO_CONTENT = {
+  eyebrow: 'Curated Design Archive',
+  heading: 'A showcase of marks, print collateral &',
+  highlightedHeading: 'visual identities.',
+  description: 'Explore recent works across branding, packaging, editorial layout, fashion photography, and kinetic motion reels. Click any piece to inspect technical deliverables, typography details, and client specifications.',
+  allFilterLabel: 'All', imageActionText: 'Inspect Details', videoActionText: 'Expand Full Reel', deliverablesLabel: 'Deliverables',
+  sectionVisibility: { hero: true, filters: true, gallery: true },
+};
+
+export const GLOBAL_CONTENT = {
+  logo: '/media/global/logo.png', brandLabel: 'JOOZZ', brandLocation: 'STUDIO UK',
+  servicesMenuLabel: 'Our Services', servicesMenuAllText: 'View All Services',
+  startProjectText: 'Start Project', mobilePhoneLabel: 'Direct UK Line:',
+  footerDescription: 'Independent graphic design, brand architecture, and visual storytelling. Chelmsford & London, United Kingdom.',
+  availabilityText: 'Available for New Brand Projects', studioLinksHeading: 'Studio', disciplinesLinksHeading: 'Disciplines', contactHeading: 'Get in Touch',
+  copyrightText: 'Joozz Designing. All Rights Reserved.', footerLocationText: 'Chelmsford, Essex Â· London WC2H 9JQ', footerRegistrationText: 'UK Registered Design Studio',
+  notFoundLabel: '// 404 ERROR', notFoundHeading: 'Page Not Found', notFoundDescription: 'The page you are looking for does not exist or may have moved. Please return to the homepage or explore our core disciplines.', notFoundButtonText: 'Return Home',
+};
+
+export const PAGE_SEO: Record<string, { title?: string; metaTitle?: string; metaDescription?: string; indexable?: boolean }> = {};
 
 /**
  * Keeps the current static data as a resilient first-paint fallback, then swaps
@@ -671,6 +818,8 @@ export function applyPublicContent(payload: {
   portfolio?: unknown[];
   faqs?: unknown[];
   navigation?: unknown[];
+  categories?: string[];
+  seo?: Record<string, { title?: string; metaTitle?: string; metaDescription?: string; indexable?: boolean }>;
 }): void {
   const settings = payload.settings || {};
   if (isRecord(settings.studio_info)) Object.assign(STUDIO_INFO, settings.studio_info);
@@ -683,10 +832,67 @@ export function applyPublicContent(payload: {
   if (isRecord(settings.home_content)) Object.assign(HOME_CONTENT, settings.home_content);
   if (isRecord(settings.about_content)) Object.assign(ABOUT_CONTENT, settings.about_content);
   if (isRecord(settings.contact_content)) Object.assign(CONTACT_CONTENT, settings.contact_content);
-  if (Array.isArray(payload.services) && payload.services.length > 0) replaceArray(CORE_SERVICES, payload.services as ServiceItem[]);
-  if (Array.isArray(payload.portfolio) && payload.portfolio.length > 0) replaceArray(PORTFOLIO_ITEMS, payload.portfolio as PortfolioItem[]);
-  if (Array.isArray(payload.faqs) && payload.faqs.length > 0) replaceArray(FAQS, payload.faqs as typeof FAQS);
-  if (Array.isArray(payload.navigation) && payload.navigation.length > 0) replaceArray(NAVIGATION_ITEMS, payload.navigation as typeof NAVIGATION_ITEMS);
+  if (isRecord(settings.services_content)) Object.assign(SERVICES_CONTENT, settings.services_content);
+  if (isRecord(settings.portfolio_content)) Object.assign(PORTFOLIO_CONTENT, settings.portfolio_content);
+  if (isRecord(settings.global_content)) Object.assign(GLOBAL_CONTENT, settings.global_content);
+  if (Array.isArray(payload.services)) replaceArray(CORE_SERVICES, payload.services as ServiceItem[]);
+  if (Array.isArray(payload.portfolio)) replaceArray(PORTFOLIO_ITEMS, payload.portfolio as PortfolioItem[]);
+  if (Array.isArray(payload.faqs)) replaceArray(FAQS, payload.faqs as typeof FAQS);
+  if (Array.isArray(payload.navigation)) replaceArray(NAVIGATION_ITEMS, payload.navigation as typeof NAVIGATION_ITEMS);
+  if (Array.isArray(payload.categories)) replaceArray(PORTFOLIO_CATEGORIES, payload.categories as string[]);
+  if (isRecord(payload.seo)) Object.assign(PAGE_SEO, payload.seo);
+  normalizeUploadedMedia();
+}
+
+export function applyCmsDocumentPreview(key: string, document: Record<string, unknown>): void {
+  if (key === 'global') {
+    if (isRecord(document.studioInfo)) Object.assign(STUDIO_INFO, document.studioInfo);
+    if (isRecord(document.content)) Object.assign(GLOBAL_CONTENT, document.content);
+    if (Array.isArray(document.navigation)) replaceArray(NAVIGATION_ITEMS, document.navigation as typeof NAVIGATION_ITEMS);
+    if (isRecord(document.collections)) {
+      const collections = document.collections;
+      if (Array.isArray(collections.services)) replaceArray(CORE_SERVICES, collections.services as ServiceItem[]);
+      if (Array.isArray(collections.testimonials)) replaceArray(CLIENT_REVIEWS, collections.testimonials as TestimonialItem[]);
+      if (Array.isArray(collections.faqs)) replaceArray(FAQS, collections.faqs as typeof FAQS);
+      if (Array.isArray(collections.team)) replaceArray(PRODUCTION_TEAM, collections.team as TeamMember[]);
+      if (Array.isArray(collections.stats)) replaceArray(STATS, collections.stats as StatItem[]);
+      if (Array.isArray(collections.categories)) replaceArray(PORTFOLIO_CATEGORIES, collections.categories as string[]);
+    }
+  }
+  if (key === 'home') {
+    if (isRecord(document.content)) Object.assign(HOME_CONTENT, document.content);
+    if (Array.isArray(document.stats)) replaceArray(STATS, document.stats as StatItem[]);
+    if (Array.isArray(document.reviews)) replaceArray(CLIENT_REVIEWS, document.reviews as TestimonialItem[]);
+    if (isRecord(document.testimonial)) Object.assign(TESTIMONIAL, document.testimonial);
+  }
+  if (key === 'about') {
+    if (isRecord(document.content)) Object.assign(ABOUT_CONTENT, document.content);
+    if (Array.isArray(document.process)) replaceArray(CREATIVE_PROCESS, document.process as ProcessStep[]);
+    if (Array.isArray(document.team)) replaceArray(PRODUCTION_TEAM, document.team as TeamMember[]);
+  }
+  if (key === 'services') {
+    if (isRecord(document.content)) Object.assign(SERVICES_CONTENT, document.content);
+    if (Array.isArray(document.items)) replaceArray(CORE_SERVICES, document.items as ServiceItem[]);
+  }
+  if (key === 'portfolio') {
+    if (isRecord(document.content)) Object.assign(PORTFOLIO_CONTENT, document.content);
+    if (Array.isArray(document.items)) replaceArray(PORTFOLIO_ITEMS, document.items as PortfolioItem[]);
+  }
+  if (key === 'contact') {
+    if (isRecord(document.content)) Object.assign(CONTACT_CONTENT, document.content);
+    if (Array.isArray(document.faqs)) replaceArray(FAQS, document.faqs as typeof FAQS);
+  }
+  if (isRecord(document.seo)) PAGE_SEO[key] = document.seo;
+  normalizeUploadedMedia();
+}
+
+function normalizeUploadedMedia(): void {
+  const apiBase = ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.VITE_API_BASE_URL || '/api/v1').replace(/\/api\/v1\/?$/, '');
+  const mediaUrl = (value: string | undefined): string | undefined => value?.startsWith('/uploads/') ? `${apiBase}${value}` : value;
+  PRODUCTION_TEAM.forEach(member => { member.image = mediaUrl(member.image) || member.image; });
+  CORE_SERVICES.forEach(service => { service.image = mediaUrl(service.image); });
+  PORTFOLIO_ITEMS.forEach(item => { item.thumbnail = mediaUrl(item.thumbnail); item.mediaUrl = mediaUrl(item.mediaUrl); item.imageUrl = mediaUrl(item.imageUrl); });
+  CLIENT_REVIEWS.forEach(review => { review.avatar = mediaUrl(review.avatar); });
 }
 
 function replaceArray<T>(target: T[], values: T[]): void {

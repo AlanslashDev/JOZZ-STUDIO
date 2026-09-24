@@ -1,6 +1,14 @@
-# Joozz PHP API and admin foundation
+# Joozz website, API and admin deployment
 
-This directory is the PHP/MySQL backend for the React site. It is deliberately separate from the Vite source so the public website can remain a fast static build while PHP owns the API, content management and authentication.
+The production site uses one domain and one public document root:
+
+- `/` and all public page routes serve the React application.
+- `/admin` serves the React CMS login and content manager through the same application shell.
+- `/api/v1` serves the PHP JSON API.
+- `/uploads` serves media uploaded through the admin.
+
+The React source remains at the project root, while `npm run build` writes its
+production files into `backend/public` alongside the PHP entry points.
 
 ## Local setup
 
@@ -10,6 +18,7 @@ This directory is the PHP/MySQL backend for the React site. It is deliberately s
    1. `database/migrations/001_initial.sql`
    2. `database/migrations/002_content_modules.sql`
    3. `database/migrations/003_seed_existing_content.sql`
+   4. `database/migrations/004_cms_documents.sql`
 
    The third migration copies the website's current services, portfolio,
    statistics, team, reviews, studio details, process and FAQs into MySQL. It
@@ -23,11 +32,37 @@ This directory is the PHP/MySQL backend for the React site. It is deliberately s
 
    The script never stores the plaintext password.
 
-4. Point a PHP-capable local virtual host at `backend/public`. For Vite development, set `VITE_API_BASE_URL` to that virtual host plus `/api/v1`.
+4. Start the PHP development server from the project root:
+
+   ```sh
+   php -S 127.0.0.1:8000 -t backend/public backend/router.php
+   ```
+
+5. In a second terminal, run `npm run dev`. Open `http://localhost:5173` for
+   the website and `http://localhost:5173/admin` for the React CMS. Vite serves
+   both React routes and proxies only API and upload requests to PHP, matching
+   the production URL layout.
 
 ## cPanel deployment
 
-Use PHP 8.2 or newer. Put the non-public folders (`app`, `config`, `database`, `scripts`, `storage`) outside the web document root when cPanel permits it. Point the website/API document root to `public`. Point `admin.yourdomain.com` to the same public entry point and configure `APP_URL` and `ADMIN_ORIGIN` with HTTPS URLs.
+Use PHP 8.2 or newer.
+
+1. Run `npm ci` and `npm run build` locally. This creates the React
+   `index.html` and `site-assets` inside `backend/public` without deleting the
+   PHP admin or API files.
+2. Upload the backend directory, including the generated files in `public`.
+3. Point the main domain document root to `backend/public`.
+4. Keep `app`, `config`, `scripts`, and `storage` outside the public document
+   root when your host permits it. If the host requires this directory layout,
+   `.htaccess` still prevents directory listing and only `public` is exposed.
+5. Configure `APP_URL`, `ADMIN_ORIGIN`, and `ALLOWED_ORIGINS` as the same HTTPS
+   main-domain URL. Keep `API_BASE_URL=/api/v1` and `SESSION_SECURE=true`.
+6. Create a dedicated MySQL user with access only to `jooz_db`. Production
+   startup intentionally refuses the MySQL `root` account or a blank password.
+7. Keep `APP_ENV=production`, enable HTTPS, and never expose `npm run dev` or
+   PHP's built-in development server to the internet.
+
+No admin subdomain is required. Visit `https://yourdomain.com/admin` to sign in.
 
 The `storage/cache` directory must be writable by PHP. Cache files are regenerated after content changes; no cron or Redis is required.
 

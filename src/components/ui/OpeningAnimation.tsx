@@ -73,7 +73,7 @@ export const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ onComplete }
         <div className="relative flex items-center justify-center">
           <div className="absolute inset-0 rounded-full blur-[40px] bg-brand-amber/25 scale-150" />
           <img
-            src="/logo.png"
+            src="/media/global/logo.png"
             alt="Joozz Designing"
             className="h-20 sm:h-24 w-auto object-contain relative z-10 drop-shadow-2xl"
           />
