@@ -12,7 +12,8 @@ final class ContentRepository
         $publicSettingKeys = [
             'studio_info', 'stats', 'creative_process', 'production_team',
             'marquee_keywords', 'testimonial', 'client_reviews',
-            'home_content', 'about_content', 'contact_content',
+            'home_content', 'about_content', 'services_content',
+            'portfolio_content', 'global_content', 'contact_content',
         ];
         $placeholders = implode(',', array_fill(0, count($publicSettingKeys), '?'));
         $statement = \db()->prepare("SELECT setting_key, setting_value FROM site_settings WHERE setting_key IN ($placeholders)");
@@ -94,13 +95,14 @@ final class ContentRepository
                         break;
                     case 'about':
                         if (isset($document['content'])) $payload['settings']['about_content'] = $document['content'];
+                        if (isset($document['studioInfo'])) $payload['settings']['studio_info'] = $document['studioInfo'];
                         if (isset($document['process'])) $payload['settings']['creative_process'] = $document['process'];
-                        if (!$sharedCollections && isset($document['team'])) $payload['settings']['production_team'] = $document['team'];
+                        if (isset($document['team'])) $payload['settings']['production_team'] = $document['team'];
                         if (isset($document['seo'])) $payload['seo']['about'] = $document['seo'];
                         break;
                     case 'services':
                         if (isset($document['content'])) $payload['settings']['services_content'] = $document['content'];
-                        if (!$sharedCollections && isset($document['items']) && is_array($document['items'])) $payload['services'] = $document['items'];
+                        if (isset($document['items']) && is_array($document['items'])) $payload['services'] = $document['items'];
                         if (isset($document['seo'])) $payload['seo']['services'] = $document['seo'];
                         break;
                     case 'portfolio':
@@ -111,7 +113,7 @@ final class ContentRepository
                         break;
                     case 'contact':
                         if (isset($document['content'])) $payload['settings']['contact_content'] = $document['content'];
-                        if (!$sharedCollections && isset($document['faqs']) && is_array($document['faqs'])) $payload['faqs'] = $document['faqs'];
+                        if (isset($document['faqs']) && is_array($document['faqs'])) $payload['faqs'] = $document['faqs'];
                         if (isset($document['seo'])) $payload['seo']['contact'] = $document['seo'];
                         break;
                 }

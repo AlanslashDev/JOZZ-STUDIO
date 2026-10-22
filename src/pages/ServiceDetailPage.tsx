@@ -1,8 +1,8 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowUpRight, CheckCircle2, Phone, Mail, Sparkles } from 'lucide-react';
-import { CORE_SERVICES, STUDIO_INFO, SERVICES_CONTENT } from '../data/content';
+import { ArrowLeft, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { CORE_SERVICES, SERVICES_CONTENT } from '../data/content';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 
 export const ServiceDetailPage: React.FC = () => {
@@ -43,8 +43,8 @@ export const ServiceDetailPage: React.FC = () => {
         {/* Hero Content — flex column with back button at top on mobile */}
         <div className="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center">
 
-          {/* Back Button — compact and left-aligned */}
-          <div className="w-full flex justify-start mb-6 sm:mb-0 sm:absolute sm:top-0 sm:left-0">
+          {/* Back Button — kept in normal flow so it cannot overlap long titles */}
+          <div className="w-full flex justify-start mb-7 sm:mb-10">
             <button
               onClick={() => navigate('/services')}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full glass border border-white/10 text-[10px] sm:text-xs font-mono uppercase tracking-wider sm:tracking-widest text-foreground-muted hover:text-brand-amber hover:border-brand-amber/40 transition-all duration-300 group"

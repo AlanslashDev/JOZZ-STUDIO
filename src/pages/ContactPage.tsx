@@ -2,18 +2,11 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Mail,
-  Phone,
   MapPin,
   Clock,
-  ArrowUpRight,
-  ShieldCheck,
-  CheckCircle2,
   Copy,
   Check,
-  ChevronDown,
-  HelpCircle,
-  Sparkles
+  ChevronDown
 } from 'lucide-react';
 import { CONTACT_CONTENT, FAQS, STUDIO_INFO } from '../data/content';
 import { ContactForm } from '../components/ui/ContactForm';

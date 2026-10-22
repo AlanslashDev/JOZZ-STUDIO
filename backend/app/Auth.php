@@ -9,6 +9,12 @@ final class Auth
     private const ABSOLUTE_TIMEOUT = 43200;
     private const REGENERATE_INTERVAL = 900;
 
+    public static function hashPassword(string $password): string
+    {
+        $algorithm = in_array('argon2id', password_algos(), true) ? 'argon2id' : PASSWORD_DEFAULT;
+        return password_hash($password, $algorithm);
+    }
+
     public static function startSession(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowUpRight, Image as ImageIcon, CheckCircle, Calendar, Tag, UserCheck } from 'lucide-react';
+import { X, ArrowUpRight, Image as ImageIcon, CheckCircle, Calendar, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PortfolioItem } from '../../types';
 
@@ -83,9 +83,9 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({ item, onClose }) =
                     Your browser does not support the video tag.
                   </video>
                 )
-              ) : (item.imageUrl || item.thumbnail) ? (
+              ) : (item.mediaUrl || item.imageUrl || item.thumbnail) ? (
                 <img
-                  src={item.thumbnail || item.imageUrl}
+                  src={item.mediaUrl || item.imageUrl || item.thumbnail}
                   alt={item.placeholderLabel || item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />

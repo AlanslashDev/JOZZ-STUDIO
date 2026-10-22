@@ -41,7 +41,7 @@ export const HeroDesignShowcaseBg: React.FC = () => {
           <motion.div
             key={currentVideo.src}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
+            animate={{ opacity: 0.62 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.6, ease: 'easeInOut' }}
             className="absolute inset-0 w-full h-full"
@@ -51,7 +51,7 @@ export const HeroDesignShowcaseBg: React.FC = () => {
               loop
               muted
               playsInline
-              className="w-full h-full object-cover scale-105 filter saturate-125 contrast-125 brightness-95"
+              className="w-full h-full object-cover scale-105 filter saturate-110 contrast-110 brightness-110"
             >
               <source src={currentVideo.src} type="video/mp4" />
             </video>
@@ -64,7 +64,7 @@ export const HeroDesignShowcaseBg: React.FC = () => {
 
       {/* 3. Layered cinematic dark vignette and radial glows */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505]" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/75 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/80 via-[#050505]/45 to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_60%_35%,rgba(232,166,76,0.12),transparent_60%)]" />
 
       {/* 4. Architectural Dot Grid */}

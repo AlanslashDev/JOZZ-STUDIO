@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
-import { ArrowUpRight, Sparkles, ArrowRight, Quote, ChevronDown, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowUpRight, ArrowRight, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { STUDIO_INFO, CORE_SERVICES, STATS, PORTFOLIO_ITEMS, TESTIMONIAL, CLIENT_REVIEWS, HOME_CONTENT } from '../data/content';
 import { Marquee } from '../components/ui/Marquee';
 import { ServiceCard } from '../components/ui/ServiceCard';
-import { StatCard } from '../components/ui/StatCard';
 import { LightboxModal } from '../components/ui/LightboxModal';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { HeroDesignShowcaseBg } from '../components/ui/HeroDesignShowcaseBg';
@@ -77,25 +76,14 @@ const AnimStat: React.FC<{
   value: string;
   label: string;
   index: number;
-}> = ({ value, label, index }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setInView(true); },
-      { threshold: 0.25 }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
-
+  start: boolean;
+}> = ({ value, label, index, start }) => {
   const numericPart = parseInt(value.replace(/\D/g, ''));
   const suffix = value.replace(/[\d]/g, '');
-  const count = useCounter(numericPart, 1800, inView);
+  const count = useCounter(numericPart, 1800, start);
 
   return (
     <motion.div
-      ref={ref}
       initial={{ opacity: 0, y: 25 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -103,13 +91,41 @@ const AnimStat: React.FC<{
       className="group border-t border-white/10 pt-6 flex flex-col justify-between gap-2 h-full"
     >
       <div className="text-stat text-gradient-gold">
-        <span>{inView ? count : 0}</span>
+        <span>{start ? count : 0}</span>
         <span className="text-brand-amber text-[0.85em] ml-0.5">{suffix}</span>
       </div>
       <div className="text-xs font-mono uppercase tracking-widest text-foreground-subtle group-hover:text-foreground-muted transition-colors leading-relaxed">
         {label}
       </div>
     </motion.div>
+  );
+};
+
+const StatsSection: React.FC = () => {
+  const ref = useRef<HTMLElement>(null);
+  const [hasEnteredView, setHasEnteredView] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setHasEnteredView(true);
+      observer.disconnect();
+    }, { threshold: 0.4 });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section ref={ref} className={`${HOME_CONTENT.sectionVisibility.stats === false ? 'hidden ' : ''}py-20 border-y border-white/[0.04] bg-surface-1 relative overflow-hidden`}>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_100%,rgba(232,166,76,0.06),transparent_60%)] pointer-none" />
+      <div className="max-w-7xl mx-auto px-8 sm:px-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
+          {STATS.map((stat, index) => <AnimStat key={index} value={stat.value} label={stat.label} index={index} start={hasEnteredView} />)}
+        </div>
+      </div>
+    </section>
   );
 };
 
@@ -402,18 +418,7 @@ export const HomePage: React.FC = () => {
       {/* ———————————————————————————————————————————————————————— 
           SECTION 4: AWWWARDS-STYLE STAT COUNTERS
           ————————————————————————————————————————————————————————  */}
-      <section className={`${HOME_CONTENT.sectionVisibility.stats === false ? 'hidden ' : ''}py-20 border-y border-white/[0.04] bg-surface-1 relative overflow-hidden`}>
-        {/* Ambient glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_100%,rgba(232,166,76,0.06),transparent_60%)] pointer-none" />
-
-        <div className="max-w-7xl mx-auto px-8 sm:px-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
-            {STATS.map((s, i) => (
-              <AnimStat key={i} value={s.value} label={s.label} index={i} />
-            ))}
-          </div>
-        </div>
-      </section>
+      <StatsSection />
 
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           SECTION 5: SERVICES GRID (numbered disciplines)

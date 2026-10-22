@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Mail, Phone, MapPin, ArrowUp } from 'lucide-react';
+import { Mail, Phone, MapPin, ArrowUp } from 'lucide-react';
 import { NAVIGATION_ITEMS, STUDIO_INFO, GLOBAL_CONTENT } from '../../data/content';
 
 const getNavColumns = () => [

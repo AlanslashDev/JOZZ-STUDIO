@@ -1,16 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   ArrowUpRight,
-  User,
-  CheckCircle2,
-  MapPin,
   Award,
   Layers,
-  Sparkles,
   Phone,
-  Mail,
   PenTool,
   Sliders,
   Compass,
@@ -19,10 +13,9 @@ import {
   Palette,
   Printer,
   Camera,
-  BookOpen,
-  ArrowRight
+  BookOpen
 } from 'lucide-react';
-import { ABOUT_CONTENT, STUDIO_INFO, CREATIVE_PROCESS, STATS, PRODUCTION_TEAM } from '../data/content';
+import { ABOUT_CONTENT, STUDIO_INFO, CREATIVE_PROCESS, PRODUCTION_TEAM } from '../data/content';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 
 const TOOLS_OF_CRAFT = [
@@ -82,29 +75,6 @@ const TOOL_ICON_MAP: Record<string, { icon: React.ElementType; color: string }> 
   Cpu: { icon: Cpu, color: 'text-teal-400' },
   Feather: { icon: Feather, color: 'text-pink-400' },
 };
-
-const MANIFESTO_POINTS = [
-  {
-    number: '01',
-    title: 'Craft Over Templates',
-    description: 'We never recycle off-the-shelf templates or generic presets. Every mark, layout, and color swatch is conceived uniquely for your brand narrative.'
-  },
-  {
-    number: '02',
-    title: 'Typography as Voice',
-    description: 'Typography is not just textâ€”it is the voice and posture of your business. We obsess over kerning, line-height, hierarchy, and optical balance.'
-  },
-  {
-    number: '03',
-    title: 'Longevity Over Micro-Trends',
-    description: 'Design should endure. We construct identities that look fresh on day one and remain distinguished a decade later.'
-  },
-  {
-    number: '04',
-    title: 'Flawless Physical Execution',
-    description: 'A great concept is useless if it fails at the press. We guarantee zero errors across resolution, CMYK separations, and die-cuts.'
-  }
-];
 
 export const AboutPage: React.FC = () => {
   return (

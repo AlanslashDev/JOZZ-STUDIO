@@ -16,6 +16,6 @@ if (!preg_match('/^[a-zA-Z0-9._-]{3,60}$/', $username) || strlen($password) < 14
 $statement = db()->prepare('INSERT INTO admins (username, password_hash, role) VALUES (:username, :password_hash, \'owner\')');
 $statement->execute([
     'username' => $username,
-    'password_hash' => password_hash($password, PASSWORD_ARGON2ID),
+    'password_hash' => Joozz\App\Auth::hashPassword($password),
 ]);
 echo "Owner account created.\n";

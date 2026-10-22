@@ -1,13 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Check, ChevronDown, ChevronUp, Clock3, ExternalLink, FileText, Globe2, Image as ImageIcon, LayoutDashboard, LogOut, Menu, Monitor, PanelLeftClose, Plus, RefreshCw, Save, Search, Send, Settings2, Smartphone, Tablet, Trash2, Upload, Users, X } from 'lucide-react';
-import { adminApi, CmsDocument, CmsDocumentSummary, Enquiry, MediaItem } from './api';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowLeft, Check, ChevronDown, ChevronUp, Clock3, ExternalLink, FileText, Globe2, Image as ImageIcon, LayoutDashboard, LogOut, Menu, Monitor, Pencil, Plus, RefreshCw, Save, Search, Send, Smartphone, Tablet, Trash2, Upload, Users, X } from 'lucide-react';
+import { adminApi, AdminAccount, CmsDocument, CmsDocumentSummary, Enquiry, MediaItem } from './api';
 import { CMS_SCHEMAS, DocumentSchema, FieldSchema, hydrateCmsDocument, RepeaterSchema, SectionSchema } from './schema';
 import { CORE_SERVICES, PORTFOLIO_CATEGORIES, PORTFOLIO_ITEMS } from '../data/content';
 import type { PortfolioItem, ServiceItem } from '../types';
 import './admin.css';
 
 type AdminUser = { username: string; role: string };
-type Screen = 'dashboard' | 'content' | 'media' | 'enquiries';
+type Screen = 'dashboard' | 'content' | 'media' | 'enquiries' | 'admins';
 type Device = 'desktop' | 'tablet' | 'mobile';
 
 const clone = <T,>(value: T): T => structuredClone(value);
@@ -17,8 +17,36 @@ function getValue(root: unknown, path: string): unknown {
 }
 function setValue(root: Record<string, unknown>, path: string, value: unknown): Record<string, unknown> {
   const next = clone(root); let cursor: Record<string, unknown> = next; const keys = parts(path);
-  keys.forEach((key, index) => { if (index === keys.length - 1) cursor[key] = value; else { const child = cursor[key]; cursor[key] = child && typeof child === 'object' && !Array.isArray(child) ? clone(child as Record<string, unknown>) : {}; cursor = cursor[key] as Record<string, unknown>; } });
+  keys.forEach((key, index) => {
+    if (index === keys.length - 1) { cursor[key] = value; return; }
+    const child = cursor[key];
+    if (Array.isArray(child)) cursor[key] = clone(child);
+    else if (child && typeof child === 'object') cursor[key] = clone(child as Record<string, unknown>);
+    else cursor[key] = /^\d+$/.test(keys[index + 1]) ? [] : {};
+    cursor = cursor[key] as Record<string, unknown>;
+  });
   return next;
+}
+async function prepareImageForUpload(file: File): Promise<File> {
+  if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
+  if (file.size > 24 * 1024 * 1024) throw new Error('This image is too large to upload. Choose an image under 24 MB.');
+  if (typeof createImageBitmap !== 'function') return file;
+  const bitmap = await createImageBitmap(file);
+  try {
+    const maxDimension = 2560;
+    if (bitmap.width <= maxDimension && bitmap.height <= maxDimension && file.size <= 6 * 1024 * 1024) return file;
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext('2d');
+    if (!context) return file;
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const compressed = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.86));
+    return compressed ? new File([compressed], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp', lastModified: Date.now() }) : file;
+  } finally {
+    bitmap.close();
+  }
 }
 const formatDate = (value?: string | null) => value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : 'Not published yet';
 const announcePublishedContent = (key: string) => {
@@ -44,7 +72,7 @@ function Login({ onLogin }: { onLogin: (user: AdminUser) => void }) {
 
 function CmsShell({ user, onLogout }: { user: AdminUser; onLogout: () => void }) {
   const initialPath = window.location.pathname.split('/').filter(Boolean); const initialKey = initialPath[0] === 'admin' && initialPath[1] === 'content' ? initialPath[2] || null : null;
-  const initialScreen: Screen = initialKey ? 'content' : initialPath[1] === 'media' ? 'media' : initialPath[1] === 'enquiries' ? 'enquiries' : initialPath[1] === 'content' ? 'content' : 'dashboard';
+  const initialScreen: Screen = initialKey ? 'content' : initialPath[1] === 'media' ? 'media' : initialPath[1] === 'enquiries' ? 'enquiries' : initialPath[1] === 'admins' ? 'admins' : initialPath[1] === 'content' ? 'content' : 'dashboard';
   const [screen, setScreen] = useState<Screen>(initialScreen); const [documents, setDocuments] = useState<CmsDocumentSummary[]>([]); const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>(PORTFOLIO_ITEMS); const [serviceItems, setServiceItems] = useState<ServiceItem[]>(CORE_SERVICES); const [selectedKey, setSelectedKey] = useState<string | null>(initialKey); const [mobileNav, setMobileNav] = useState(false); const [search, setSearch] = useState(''); const [openGroups, setOpenGroups] = useState({ content: true, global: true, manage: true });
   const refreshDocuments = useCallback(() => adminApi.documents().then(({ items }) => setDocuments(items)), []);
   useEffect(() => { refreshDocuments(); }, [refreshDocuments]);
@@ -53,10 +81,10 @@ function CmsShell({ user, onLogout }: { user: AdminUser; onLogout: () => void })
   useEffect(() => { if (selectedKey !== 'home') return; adminApi.document('services').then((document) => { const items = document.draft.items; if (Array.isArray(items)) setServiceItems(items as ServiceItem[]); }).catch(() => undefined); }, [selectedKey]);
   const openDocument = (key: string) => { window.history.pushState({}, '', `/admin/content/${key}`); setSelectedKey(key); setScreen('content'); setMobileNav(false); };
   const navigate = (next: Screen) => { window.history.pushState({}, '', next === 'dashboard' ? '/admin' : `/admin/${next}`); setScreen(next); setSelectedKey(null); setMobileNav(false); };
-  useEffect(() => { const restorePath = () => { const path = window.location.pathname.split('/').filter(Boolean); const key = path[1] === 'content' ? path[2] || null : null; setSelectedKey(key); setScreen(key || path[1] === 'content' ? 'content' : path[1] === 'media' ? 'media' : path[1] === 'enquiries' ? 'enquiries' : 'dashboard'); }; window.addEventListener('popstate', restorePath); return () => window.removeEventListener('popstate', restorePath); }, []);
+  useEffect(() => { const restorePath = () => { const path = window.location.pathname.split('/').filter(Boolean); const key = path[1] === 'content' ? path[2] || null : null; setSelectedKey(key); setScreen(key || path[1] === 'content' ? 'content' : path[1] === 'media' ? 'media' : path[1] === 'enquiries' ? 'enquiries' : path[1] === 'admins' ? 'admins' : 'dashboard'); }; window.addEventListener('popstate', restorePath); return () => window.removeEventListener('popstate', restorePath); }, []);
   const matches = documents.filter((document) => `${document.title} ${document.description}`.toLowerCase().includes(search.toLowerCase()));
   const toggleGroup = (group: keyof typeof openGroups) => setOpenGroups((current) => ({ ...current, [group]: !current[group] }));
-  const currentTitle = selectedKey ? documents.find((item) => item.key === selectedKey)?.title || 'Page Editor' : screen === 'dashboard' ? 'Dashboard' : screen === 'content' ? 'Website Content' : screen === 'media' ? 'Media Library' : 'Enquiries';
+  const currentTitle = selectedKey ? documents.find((item) => item.key === selectedKey)?.title || 'Page Editor' : screen === 'dashboard' ? 'Dashboard' : screen === 'content' ? 'Website Content' : screen === 'media' ? 'Media Library' : screen === 'admins' ? 'Admin Accounts' : 'Enquiries';
   return <div className="cms-shell">
     <aside className={`cms-sidebar ${mobileNav ? 'is-open' : ''}`}>
       <div className="cms-brand"><div className="cms-brand-mark">J</div><div><strong>Joozz Studio</strong><span>Content Management</span></div><button className="cms-mobile-close" onClick={() => setMobileNav(false)}><X /></button></div>
@@ -68,7 +96,7 @@ function CmsShell({ user, onLogout }: { user: AdminUser; onLogout: () => void })
         <button className="cms-nav-group" onClick={() => toggleGroup('global')} aria-expanded={openGroups.global}><span>Global Content</span><ChevronDown /></button>
         {openGroups.global && <div className="cms-nav-group-items">{documents.filter((item) => item.key === 'global').map((item) => <button key={item.key} className={selectedKey === item.key ? 'active' : ''} onClick={() => openDocument(item.key)}><Globe2 />{item.title}{item.status === 'draft' && <i />}</button>)}</div>}
         <button className="cms-nav-group" onClick={() => toggleGroup('manage')} aria-expanded={openGroups.manage}><span>Manage</span><ChevronDown /></button>
-        {openGroups.manage && <div className="cms-nav-group-items"><button className={screen === 'media' ? 'active' : ''} onClick={() => navigate('media')}><ImageIcon />Media Library</button><button className={screen === 'enquiries' ? 'active' : ''} onClick={() => navigate('enquiries')}><Send />Enquiries</button></div>}
+        {openGroups.manage && <div className="cms-nav-group-items"><button className={screen === 'media' ? 'active' : ''} onClick={() => navigate('media')}><ImageIcon />Media Library</button><button className={screen === 'enquiries' ? 'active' : ''} onClick={() => navigate('enquiries')}><Send />Enquiries</button><button className={screen === 'admins' ? 'active' : ''} onClick={() => navigate('admins')}><Users />Admins</button></div>}
       </nav>
       <a className="cms-sidebar-site-link" href="/" target="_blank" rel="noreferrer"><ExternalLink /><span><strong>View website</strong><small>Open the published site</small></span></a>
       <div className="cms-user"><span className="cms-user-avatar">{user.username.slice(0, 1).toUpperCase()}</span><div><strong>{user.username}</strong><span>{user.role}</span></div><button onClick={onLogout} title="Sign out" aria-label="Sign out"><LogOut /></button></div>
@@ -80,6 +108,7 @@ function CmsShell({ user, onLogout }: { user: AdminUser; onLogout: () => void })
       {screen === 'content' && !selectedKey && <ContentOverview documents={documents} openDocument={openDocument} />}
       {screen === 'media' && <MediaLibrary />}
       {screen === 'enquiries' && <Enquiries />}
+      {screen === 'admins' && (user.role === 'owner' ? <AdminManagement currentUser={user} /> : <div className="cms-page"><div className="cms-page-heading"><p className="cms-kicker">ACCESS MANAGEMENT</p><h1>Admin accounts</h1></div><div className="cms-error" role="alert">Only an owner account can view, add, or edit admin accounts. Sign in with an owner account to manage access.</div></div>)}
     </main>
   </div>;
 }
@@ -108,7 +137,6 @@ function PageEditor({ documentKey, availablePortfolio, availableServices, onBack
   useEffect(() => { if (!dirty) return; const timer = window.setTimeout(async () => { setSaveState('saving'); try { await adminApi.saveDraft(documentKey, draftRef.current); setDirty(false); setSaveState('saved'); onRefresh(); } catch (error) { setSaveState('error'); setToast(error instanceof Error ? error.message : 'Draft could not be saved.'); } }, 1800); return () => window.clearTimeout(timer); }, [dirty, documentKey, onRefresh]);
   useEffect(() => { const protect = (event: BeforeUnloadEvent) => { if (dirty) { event.preventDefault(); event.returnValue = ''; } }; window.addEventListener('beforeunload', protect); return () => window.removeEventListener('beforeunload', protect); }, [dirty]);
   const update = (path: string, value: unknown) => { setDraft((current) => setValue(current, path, value)); setDirty(true); setSaveState('idle'); };
-  const openSection = (key: string) => { window.history.pushState({}, '', `/admin/content/${documentKey}/${key}`); setActiveSection(key); };
   const closeSection = () => { window.history.pushState({}, '', `/admin/content/${documentKey}`); setActiveSection(null); };
   const saveNow = async () => { setSaveState('saving'); try { await adminApi.saveDraft(documentKey, draftRef.current); setDirty(false); setSaveState('saved'); setToast('Draft saved. Your live website is unchanged.'); onRefresh(); } catch (error) { setSaveState('error'); setToast(error instanceof Error ? error.message : 'Draft could not be saved.'); } };
   const publish = async () => { setConfirmPublish(false); try { if (dirty) await adminApi.saveDraft(documentKey, draftRef.current); await adminApi.publish(documentKey); announcePublishedContent(documentKey); await load(); onRefresh(); setToast('Published. Open website tabs have been refreshed.'); } catch (error) { setToast(error instanceof Error ? error.message : 'Changes could not be published.'); } };
@@ -146,14 +174,15 @@ function SectionEditor({ section, document, documentKey, availablePortfolio, ava
 
 function FieldControl({ field, value, portfolioItems, serviceItems, section = 'general', onChange, chooseMedia }: { field: FieldSchema; value: unknown; portfolioItems?: PortfolioItem[]; serviceItems?: ServiceItem[]; section?: string; onChange: (value: unknown) => void; chooseMedia: () => void }) {
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   if (field.type === 'toggle') return <div className="cms-toggle-field"><div><strong>{field.label}</strong>{field.help && <span>{field.help}</span>}</div><Toggle value={value !== false} onChange={onChange} /></div>;
   if (field.type === 'objectList') return <ObjectListField field={field} value={Array.isArray(value) ? value as Record<string, unknown>[] : []} onChange={onChange} chooseMedia={chooseMedia} />;
   if (field.type === 'categoryList') return <CategoryListField field={field} value={Array.isArray(value) ? value as string[] : []} onChange={onChange} />;
   if (field.type === 'portfolioSelect') return <PortfolioSelectField value={Array.isArray(value) ? value as string[] : []} items={portfolioItems || []} onChange={onChange} />;
   if (field.type === 'serviceSelect') return <ServiceSelectField value={Array.isArray(value) ? value as string[] : []} items={serviceItems || CORE_SERVICES} onChange={onChange} />;
   if (field.type === 'image') {
-    const url = String(value || ''); const upload = async (file?: File) => { if (!file) return; setUploading(true); try { const result = await adminApi.upload(file, field.label, section); onChange(result.url); } finally { setUploading(false); } };
-    return <div className="cms-image-field"><div className="cms-field-label"><strong>{field.label}</strong>{field.help && <span>{field.help}</span>}</div><div className="cms-image-preview">{url ? (url.match(/\.(mp4|webm)(\?|$)/i) ? <video src={url} muted /> : <img src={url} alt="" />) : <div><ImageIcon /><span>No media selected</span></div>}</div><div className="cms-image-actions"><label className="cms-secondary"><Upload />{uploading ? 'Uploading…' : url ? 'Replace file' : 'Upload file'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onChange={(event) => upload(event.target.files?.[0])} disabled={uploading} /></label><button className="cms-secondary" type="button" onClick={chooseMedia}><ImageIcon />Media library</button>{url && <button className="cms-icon-danger" type="button" onClick={() => onChange('')} title="Remove"><Trash2 /></button>}</div></div>;
+    const url = String(value || ''); const upload = async (file?: File) => { if (!file) return; setUploadError(''); setUploading(true); try { const optimizedFile = await prepareImageForUpload(file); const result = await adminApi.upload(optimizedFile, field.label, section); onChange(result.url); } catch (error) { setUploadError(error instanceof Error ? error.message : 'Image upload failed.'); } finally { setUploading(false); } };
+    return <div className="cms-image-field"><div className="cms-field-label"><strong>{field.label}</strong>{field.help && <span>{field.help}</span>}</div><div className="cms-image-preview">{url ? (url.match(/\.(mp4|webm)(\?|$)/i) ? <video src={url} muted /> : <img src={url} alt="" loading="lazy" decoding="async" />) : <div><ImageIcon /><span>No media selected</span></div>}</div><div className="cms-image-actions"><label className="cms-secondary"><Upload />{uploading ? 'Uploading…' : url ? 'Replace file' : 'Upload file'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onChange={(event) => { upload(event.target.files?.[0]); event.currentTarget.value = ''; }} disabled={uploading} /></label><button className="cms-secondary" type="button" onClick={chooseMedia}><ImageIcon />Media library</button>{url && <button className="cms-icon-danger" type="button" onClick={() => onChange('')} title="Remove"><Trash2 /></button>}</div>{uploadError && <small className="cms-error" role="alert">{uploadError}</small>}</div>;
   }
   if (field.type === 'list') return <ListField field={field} value={Array.isArray(value) ? value as string[] : []} onChange={onChange} />;
   if (field.type === 'select') return <label className="cms-field cms-field-select"><span><strong>{field.label}</strong>{field.help && <small>{field.help}</small>}</span><select value={String(value || field.options?.[0]?.value || '')} onChange={(event) => onChange(event.target.value)}>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>;
@@ -203,7 +232,7 @@ function RepeaterEditor({ schema, items, categoryOptions, onChange, chooseMedia 
   const isServiceList = schema.itemName === 'Service';
   const isProjectList = schema.itemName === 'Project';
   const entries = items.map((item, index) => ({ item, index })).filter(({ item }) => !schema.filter || getValue(item, schema.filter.path) === schema.filter.value);
-  const updateItem = (index: number, path: string, value: unknown) => { const next = clone(items); next[index] = setValue(next[index] || {}, path, value); if (isServiceList && path === 'title' && !next[index].id) next[index].id = String(value).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); onChange(next); };
+  const updateItem = (index: number, path: string, value: unknown) => { const next = clone(items); next[index] = setValue(next[index] || {}, path, value); if (isServiceList && path === 'title' && !next[index].id) next[index].id = String(value).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); if (isProjectList && path === 'mediaUrl') next[index].type = typeof value === 'string' && /\.(mp4|webm)(?:[?#]|$)/i.test(value) ? 'video' : 'image'; onChange(next); };
   const move = (index: number, direction: -1 | 1) => { const visibleIndex = entries.findIndex((entry) => entry.index === index); const target = entries[visibleIndex + direction]?.index; if (target === undefined) return; const next = clone(items); [next[index], next[target]] = [next[target], next[index]]; onChange(next); setOpen(target); };
   return <div className="cms-repeater"><div className="cms-repeater-heading"><div><h3>{schema.itemName}s</h3><p>Open an item to edit it. Use the arrows to change its order.</p></div><button className="cms-primary" type="button" onClick={() => { const newItem = isServiceList ? { visible: true, id: '', title: 'New Service', tagline: '', description: '', deliverables: [], whatWeOffer: [], idealFor: '', iconName: 'PenTool' } : isProjectList ? { visible: true, id: `new-project-${items.length + 1}`, title: 'New Project', category: '', client: '', year: String(new Date().getFullYear()), description: '', thumbnail: '', mediaUrl: '', placeholderLabel: '', deliverables: [], type: 'image', isEmbed: false } : { visible: true }; if (schema.filter) setValue(newItem, schema.filter.path, schema.filter.value); onChange([...items, newItem]); setOpen(items.length); }}><Plus />Add {schema.itemName}</button></div>{entries.length === 0 && <div className="cms-empty"><FileText /><strong>No {schema.itemName.toLowerCase()}s added yet.</strong><span>Add the first item when you are ready.</span></div>}{entries.map(({ item, index }, displayIndex) => <article className={`cms-repeat-item ${open === index ? 'open': ''}`} key={index}><header onClick={() => setOpen(open === index ? null : index)}><span className="cms-drag">{String(displayIndex + 1).padStart(2, '0')}</span><div><strong>{String(getValue(item, schema.titlePath) || `New ${schema.itemName}`)}</strong><small>{item.visible === false ? 'Hidden' : 'Visible'}</small></div><div className="cms-repeat-actions" onClick={(event) => event.stopPropagation()}><button onClick={() => move(index, -1)} disabled={displayIndex === 0}><ChevronUp /></button><button onClick={() => move(index, 1)} disabled={displayIndex === entries.length - 1}><ChevronDown /></button><button className="danger" onClick={() => { onChange(items.filter((_, itemIndex) => itemIndex !== index)); setOpen(null); }}><Trash2 /></button><button onClick={() => setOpen(open === index ? null : index)}>{open === index ? <ChevronUp /> : <ChevronDown />}</button></div></header>{open === index && <div className="cms-repeat-fields">{schema.fields.map((field) => { const currentCategory = String(getValue(item, field.path) || ''); const options = categoryOptions.some((option) => option.value === currentCategory) || !currentCategory ? categoryOptions : [{ label: `Unlisted: ${currentCategory}`, value: currentCategory }, ...categoryOptions]; const resolvedField = field.path === 'category' && options.length ? { ...field, type: 'select' as const, options, help: 'Choose a shared category managed in Global Content.' } : field; return <FieldControl key={field.path} field={resolvedField} value={getValue(item, field.path)} onChange={(value) => updateItem(index, field.path, value)} chooseMedia={() => chooseMedia(`${index}.${field.path}`)} />; })}</div>}</article>)}</div>;
 }
@@ -211,17 +240,17 @@ function RepeaterEditor({ schema, items, categoryOptions, onChange, chooseMedia 
 function Toggle({ value, onChange }: { value: boolean; onChange: (value: boolean) => void }) { return <button type="button" className={`cms-switch ${value ? 'on' : ''}`} onClick={() => onChange(!value)} aria-pressed={value}><span /></button>; }
 
 function MediaPicker({ onSelect, onClose }: { onSelect: (url: string) => void; onClose: () => void }) {
-  const [items, setItems] = useState<MediaItem[]>([]); const [query, setQuery] = useState(''); const [loading, setLoading] = useState(true);
-  useEffect(() => { const timer = window.setTimeout(() => { setLoading(true); adminApi.media(query).then(({ items: media }) => setItems(media)).finally(() => setLoading(false)); }, 250); return () => window.clearTimeout(timer); }, [query]);
-  return <div className="cms-modal-backdrop"><div className="cms-media-modal"><header><div><p className="cms-kicker">MEDIA LIBRARY</p><h2>Choose a file</h2></div><button onClick={onClose}><X /></button></header><div className="cms-search"><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search uploaded files…" /></div>{loading ? <div className="cms-loading"><span className="cms-spinner" />Loading media…</div> : <div className="cms-media-grid">{items.map((item) => <button key={item.id} onClick={() => onSelect(item.url)}>{item.type.startsWith('video/') ? <video src={item.url} muted /> : <img src={item.url} alt={item.altText} />}<span><strong>{item.name}</strong><small>{item.altText || 'No alternative text'}</small></span></button>)}</div>}</div></div>;
+  const [items, setItems] = useState<MediaItem[]>([]); const [query, setQuery] = useState(''); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
+  useEffect(() => { let active = true; const timer = window.setTimeout(() => { setLoading(true); setError(''); adminApi.media(query).then(({ items: media }) => { if (active) setItems(media); }).catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : 'Media library could not be loaded.'); }).finally(() => { if (active) setLoading(false); }); }, 250); return () => { active = false; window.clearTimeout(timer); }; }, [query]);
+  return <div className="cms-modal-backdrop"><div className="cms-media-modal"><header><div><p className="cms-kicker">MEDIA LIBRARY</p><h2>Choose a file</h2></div><button type="button" onClick={onClose}><X /></button></header><div className="cms-search"><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search uploaded files…" /></div>{loading ? <div className="cms-loading"><span className="cms-spinner" />Loading media…</div> : error ? <div className="cms-error" role="alert">{error}</div> : <div className="cms-media-grid">{items.map((item) => <button type="button" key={item.id} onClick={() => onSelect(item.url)}>{item.type.startsWith('video/') ? <video src={item.url} muted /> : <img src={item.url} alt={item.altText} loading="lazy" decoding="async" />}<span><strong>{item.name}</strong><small>{item.altText || 'No alternative text'}</small></span></button>)}</div>}</div></div>;
 }
 
 function MediaLibrary() {
-  const [items, setItems] = useState<MediaItem[]>([]); const [query, setQuery] = useState(''); const [section, setSection] = useState('general'); const [loading, setLoading] = useState(true); const [toast, setToast] = useState(''); const [deleteItem, setDeleteItem] = useState<MediaItem | null>(null);
+  const [items, setItems] = useState<MediaItem[]>([]); const [query, setQuery] = useState(''); const [section, setSection] = useState('general'); const [loading, setLoading] = useState(true); const [uploading, setUploading] = useState(false); const [toast, setToast] = useState(''); const [deleteItem, setDeleteItem] = useState<MediaItem | null>(null);
   const load = useCallback(() => { setLoading(true); adminApi.media(query).then(({ items: media }) => setItems(media)).catch((error) => setToast(error.message)).finally(() => setLoading(false)); }, [query]);
   useEffect(() => { const timer = window.setTimeout(load, 250); return () => window.clearTimeout(timer); }, [load]);
-  const upload = async (file?: File) => { if (!file) return; try { await adminApi.upload(file, file.name.replace(/\.[^.]+$/, ''), section); setToast(`Media uploaded to ${section}.`); load(); } catch (error) { setToast(error instanceof Error ? error.message : 'Upload failed.'); } };
-  return <div className="cms-page"><div className="cms-page-heading cms-heading-row"><div><p className="cms-kicker">ASSET LIBRARY</p><h1>Media Library</h1><p>Upload once, add helpful alternative text and keep files organised by website section.</p></div><div className="cms-media-upload-actions"><label className="cms-field cms-field-select"><span><strong>Upload to section</strong><small>New files will be stored in this folder.</small></span><select value={section} onChange={(event) => setSection(event.target.value)}><option value="general">General</option><option value="home">Home</option><option value="about">About</option><option value="services">Services</option><option value="portfolio">Portfolio</option><option value="contact">Contact</option><option value="global">Global</option><option value="team">Team</option></select></label><label className="cms-primary"><Upload />Upload media<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onChange={(event) => upload(event.target.files?.[0])} /></label></div></div><div className="cms-search cms-content-search"><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by filename…" /></div>{loading ? <div className="cms-loading"><span className="cms-spinner" />Loading media…</div> : items.length ? <div className="cms-library-grid">{items.map((item) => <article key={item.id}>{item.type.startsWith('video/') ? <video src={item.url} controls /> : <img src={item.url} alt={item.altText} />}<div><strong>{item.name}</strong><small>{Math.ceil(item.size / 1024)} KB · {item.type}</small><label>Alternative text<input defaultValue={item.altText} onBlur={(event) => adminApi.updateMedia(item.id, event.target.value).then(() => setToast('Alternative text saved.')).catch((error) => setToast(error.message))} /></label><div><button className="cms-secondary" onClick={() => navigator.clipboard.writeText(`${location.origin}${item.url}`).then(() => setToast('Link copied.'))}>Copy link</button><button className="cms-icon-danger" onClick={() => setDeleteItem(item)}><Trash2 /></button></div></div></article>)}</div> : <div className="cms-empty"><ImageIcon /><strong>No media found.</strong><span>Upload an image or video to start your library.</span></div>}{deleteItem && <ConfirmDialog title={`Delete “${deleteItem.name}”?`} description="The file can only be deleted when it is not being used by published or draft content." confirm="Delete media" danger onCancel={() => setDeleteItem(null)} onConfirm={() => adminApi.deleteMedia(deleteItem.id).then(() => { setDeleteItem(null); load(); setToast('Media deleted.'); }).catch((error) => { setDeleteItem(null); setToast(error.message); })} />}{toast && <Toast message={toast} close={() => setToast('')} />}</div>;
+  const upload = async (file?: File) => { if (!file) return; setUploading(true); try { await adminApi.upload(file, file.name.replace(/\.[^.]+$/, ''), section); setToast(`Media uploaded to ${section}.`); load(); } catch (error) { setToast(error instanceof Error ? error.message : 'Upload failed.'); } finally { setUploading(false); } };
+  return <div className="cms-page"><div className="cms-page-heading cms-heading-row"><div><p className="cms-kicker">ASSET LIBRARY</p><h1>Media Library</h1><p>Upload once, add helpful alternative text and keep files organised by website section.</p></div><div className="cms-media-upload-actions"><label className="cms-field cms-field-select"><span><strong>Upload to section</strong><small>New files will be stored in this folder.</small></span><select value={section} onChange={(event) => setSection(event.target.value)}><option value="general">General</option><option value="home">Home</option><option value="about">About</option><option value="services">Services</option><option value="portfolio">Portfolio</option><option value="contact">Contact</option><option value="global">Global</option><option value="team">Team</option></select></label><label className="cms-primary"><Upload />{uploading ? 'Uploading…' : 'Upload media'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" disabled={uploading} onChange={(event) => { upload(event.target.files?.[0]); event.currentTarget.value = ''; }} /></label></div></div><div className="cms-search cms-content-search"><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by filename…" /></div>{loading ? <div className="cms-loading"><span className="cms-spinner" />Loading media…</div> : items.length ? <div className="cms-library-grid">{items.map((item) => <article key={item.id}>{item.type.startsWith('video/') ? <video src={item.url} controls /> : <img src={item.url} alt={item.altText} loading="lazy" decoding="async" />}<div><strong>{item.name}</strong><small>{Math.ceil(item.size / 1024)} KB · {item.type}</small><label>Alternative text<input defaultValue={item.altText} onBlur={(event) => adminApi.updateMedia(item.id, event.target.value).then(() => setToast('Alternative text saved.')).catch((error) => setToast(error.message))} /></label><div><button className="cms-secondary" onClick={() => navigator.clipboard.writeText(`${location.origin}${item.url}`).then(() => setToast('Link copied.'))}>Copy link</button><button className="cms-icon-danger" onClick={() => setDeleteItem(item)}><Trash2 /></button></div></div></article>)}</div> : <div className="cms-empty"><ImageIcon /><strong>No media found.</strong><span>Upload an image or video to start your library.</span></div>}{deleteItem && <ConfirmDialog title={`Delete “${deleteItem.name}”?`} description="The file can only be deleted when it is not being used by published or draft content." confirm="Delete media" danger onCancel={() => setDeleteItem(null)} onConfirm={() => adminApi.deleteMedia(deleteItem.id).then(() => { setDeleteItem(null); load(); setToast('Media deleted.'); }).catch((error) => { setDeleteItem(null); setToast(error.message); })} />}{toast && <Toast message={toast} close={() => setToast('')} />}</div>;
 }
 
 function Enquiries() {
@@ -231,6 +260,62 @@ function Enquiries() {
   const filteredItems = items.filter((item) => { const text = `${item.name} ${item.email} ${item.phone || ''} ${item.service} ${item.message}`.toLowerCase(); return (statusFilter === 'all' || item.status === statusFilter) && (serviceFilter === 'all' || item.service === serviceFilter) && text.includes(query.trim().toLowerCase()); });
   if (loading) return <div className="cms-page cms-loading"><span className="cms-spinner" />Loading enquiries…</div>;
   return <div className="cms-page"><div className="cms-page-heading"><p className="cms-kicker">PROJECT REQUESTS</p><h1>Enquiries</h1><p>Review messages and keep their follow-up status organised.</p></div>{items.length ? <><div className="cms-enquiry-filters"><div className="cms-search"><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, email, service, or message" /></div><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="all">All statuses</option>{['new', 'read', 'replied', 'archived'].map((status) => <option key={status} value={status}>{status}</option>)}</select><select value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)}><option value="all">All services</option>{services.map((service) => <option key={service} value={service}>{service}</option>)}</select></div>{filteredItems.length ? <div className="cms-enquiries">{filteredItems.map((item) => <article key={item.id}><header><div><strong>{item.name}</strong><a href={`mailto:${item.email}`}>{item.email}</a></div><select value={item.status} onChange={(event) => { const status = event.target.value; adminApi.updateEnquiry(item.id, status).then(() => { setItems((current) => current.map((entry) => entry.id === item.id ? { ...entry, status } : entry)); setToast('Enquiry status updated.'); }).catch((error) => setToast(error.message)); }}>{['new', 'read', 'replied', 'archived'].map((status) => <option key={status}>{status}</option>)}</select></header><div className="cms-enquiry-meta"><span>{item.service}</span><span>{formatDate(item.createdAt)}</span>{item.phone && <a href={`tel:${item.phone}`}>{item.phone}</a>}</div><p>{item.message}</p></article>)}</div> : <div className="cms-empty"><Search /><strong>No enquiries match these filters.</strong><span>Change or clear a filter to see more requests.</span></div>}</> : <div className="cms-empty"><Send /><strong>No enquiries yet.</strong><span>New project requests will appear here.</span></div>}{toast && <Toast message={toast} close={() => setToast('')} />}</div>;
+}
+
+function AdminManagement({ currentUser }: { currentUser: AdminUser }) {
+  const [items, setItems] = useState<AdminAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [username, setUsername] = useState('');
+  const [role, setRole] = useState<'owner' | 'admin'>('admin');
+  const [isActive, setIsActive] = useState(true);
+  const [password, setPassword] = useState('');
+  const [confirmation, setConfirmation] = useState('');
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+
+  const refresh = () => adminApi.admins().then(({ items: accounts }) => setItems(accounts));
+  useEffect(() => { refresh().catch((cause) => setError(cause instanceof Error ? cause.message : 'Admin accounts could not be loaded.')).finally(() => setLoading(false)); }, []);
+  const resetForm = () => { setEditingId(null); setUsername(''); setRole('admin'); setIsActive(true); setPassword(''); setConfirmation(''); setError(''); };
+  const startEdit = (account: AdminAccount) => { setEditingId(account.id); setUsername(account.username); setRole(account.role); setIsActive(account.isActive); setPassword(''); setConfirmation(''); setError(''); setNotice(''); };
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); setError(''); setNotice('');
+    if (password && password !== confirmation) { setError('The password confirmation does not match.'); return; }
+    if (editingId === null && !password) { setError('Enter a password for the new admin.'); return; }
+    setBusy(true);
+    try {
+      if (editingId === null) {
+        await adminApi.createAdmin({ username, password, role });
+        setNotice('Admin account created.');
+      } else {
+        await adminApi.updateAdmin(editingId, { username, role, isActive, ...(password ? { password } : {}) });
+        setNotice('Admin account updated.');
+      }
+      await refresh(); resetForm();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'The admin account could not be saved.'); }
+    finally { setBusy(false); }
+  };
+
+  return <div className="cms-page cms-admin-management">
+    <div className="cms-page-heading"><p className="cms-kicker">ACCESS MANAGEMENT</p><h1>Admin accounts</h1><p>Add admins, change their access, or reset a password. Only owners can manage accounts.</p></div>
+    <section className="cms-admin-panel">
+      <header><div><h2>{editingId === null ? 'Add an admin' : 'Edit admin account'}</h2><p>{editingId === null ? 'New passwords must contain at least 14 characters.' : 'Leave the new password blank to keep the current password.'}</p></div>{editingId !== null && <button className="cms-secondary" type="button" onClick={resetForm}>Cancel edit</button>}</header>
+      <form className="cms-admin-form" onSubmit={submit}>
+        <label>Username<input value={username} onChange={(event) => setUsername(event.target.value)} required minLength={3} maxLength={60} pattern="[A-Za-z0-9._-]+" autoComplete="off" /></label>
+        <label>Role<select value={role} disabled={editingId !== null && items.find((item) => item.id === editingId)?.username === currentUser.username} onChange={(event) => setRole(event.target.value as 'owner' | 'admin')}><option value="admin">Admin</option><option value="owner">Owner</option></select></label>
+        {editingId !== null && <label className="cms-admin-active"><input type="checkbox" checked={isActive} disabled={items.find((item) => item.id === editingId)?.username === currentUser.username} onChange={(event) => setIsActive(event.target.checked)} />Account active</label>}
+        <label>{editingId === null ? 'Password' : 'New password'}<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required={editingId === null} minLength={password ? 14 : undefined} autoComplete="new-password" /></label>
+        {password && <label>Confirm password<input type="password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required minLength={14} autoComplete="new-password" /></label>}
+        {error && <div className="cms-error" role="alert">{error}</div>}
+        {notice && <div className="cms-admin-notice" role="status">{notice}</div>}
+        <button className="cms-primary" disabled={busy}>{busy ? 'Saving…' : editingId === null ? 'Add admin' : 'Save account'}</button>
+      </form>
+    </section>
+    <section className="cms-admin-panel cms-admin-list"><header><div><h2>Current accounts</h2><p>{items.length} account{items.length === 1 ? '' : 's'} · Keep at least one active owner.</p></div></header>
+      {loading ? <div className="cms-loading"><span className="cms-spinner" />Loading admin accounts…</div> : items.length === 0 ? <div className="cms-empty"><Users /><strong>No admin accounts found.</strong></div> : <div className="cms-admin-table-wrap"><table><thead><tr><th>Username</th><th>Role</th><th>Status</th><th>Added</th><th></th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td><strong>{item.username}</strong>{item.username === currentUser.username && <small>You</small>}</td><td><span className="cms-admin-role">{item.role}</span></td><td><span className={`cms-admin-status ${item.isActive ? 'active' : 'inactive'}`}>{item.isActive ? 'Active' : 'Inactive'}</span></td><td>{formatDate(item.createdAt)}</td><td><button className="cms-secondary cms-admin-edit" type="button" onClick={() => startEdit(item)}><Pencil />Edit</button></td></tr>)}</tbody></table></div>}
+    </section>
+  </div>;
 }
 
 function ConfirmDialog({ title, description, confirm, danger, onConfirm, onCancel }: { title: string; description: string; confirm: string; danger?: boolean; onConfirm: () => void; onCancel: () => void }) { return <div className="cms-modal-backdrop"><div className="cms-confirm"><div className={danger ? 'danger' : ''}>{danger ? <Trash2 /> : <Globe2 />}</div><h2>{title}</h2><p>{description}</p><footer><button className="cms-secondary" onClick={onCancel}>Cancel</button><button className={danger ? 'cms-danger' : 'cms-primary'} onClick={onConfirm}>{confirm}</button></footer></div></div>; }

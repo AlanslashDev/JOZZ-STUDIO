@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 $bootstrapCandidates = [
     dirname(__DIR__) . '/config/bootstrap.php',
+    dirname(__DIR__) . '/backend/config/bootstrap.php',
     dirname(__DIR__, 2) . '/config/bootstrap.php',
     dirname(__DIR__, 3) . '/config/bootstrap.php',
 ];

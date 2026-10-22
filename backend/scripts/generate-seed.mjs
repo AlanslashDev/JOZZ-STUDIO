@@ -4,7 +4,10 @@ import ts from 'typescript';
 
 const sourcePath = new URL('../../src/data/content.ts', import.meta.url);
 const outputPath = new URL('../database/migrations/003_seed_existing_content.sql', import.meta.url);
-const source = fs.readFileSync(sourcePath, 'utf8');
+const source = fs.readFileSync(sourcePath, 'utf8').replace(
+  'import.meta as unknown as { env?: Record<string, string | undefined> }',
+  '({ env: {} } as { env?: Record<string, string | undefined> })',
+);
 const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
@@ -32,6 +35,9 @@ const settings = {
   client_reviews: data.CLIENT_REVIEWS,
   home_content: data.HOME_CONTENT,
   about_content: data.ABOUT_CONTENT,
+  services_content: data.SERVICES_CONTENT,
+  portfolio_content: data.PORTFOLIO_CONTENT,
+  global_content: data.GLOBAL_CONTENT,
   contact_content: data.CONTACT_CONTENT,
 };
 for (const [key, value] of Object.entries(settings)) {
@@ -47,7 +53,7 @@ for (const [index, service] of data.CORE_SERVICES.entries()) {
   (service.whatWeOffer || []).forEach((offer, order) => statements.push(`INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,${quote(offer.number)},${quote(offer.title)},${quote(offer.description)},${order});`));
 }
 
-const categories = [...new Set(data.PORTFOLIO_ITEMS.map((item) => item.category))];
+const categories = data.PORTFOLIO_CATEGORIES;
 const slugify = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 categories.forEach((name, order) => statements.push(`INSERT INTO portfolio_categories (name,slug,is_active,sort_order) VALUES (${quote(name)},${quote(slugify(name))},1,${order}) ON DUPLICATE KEY UPDATE name=VALUES(name),is_active=1,sort_order=VALUES(sort_order);`));
 for (const [index, item] of data.PORTFOLIO_ITEMS.entries()) {

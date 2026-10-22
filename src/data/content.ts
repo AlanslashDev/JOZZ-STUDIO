@@ -763,7 +763,7 @@ export const CONTACT_CONTENT = {
     successHeading: 'Inquiry Received', successMessage: 'Thank you. Our studio will review your project requirements and respond within 24â€“48 hours with initial thoughts and availability.',
     resetText: 'Send Another Message', responseNote: 'Direct response within 24â€“48 hours. No middle management.',
     extraServices: ['Ongoing Creative Retainer', 'Other / Custom Project'],
-    budgets: ['Under Â£1,000', 'Â£1,000 - Â£3,000', 'Â£3,000 - Â£6,000', 'Â£6,000+'],
+    budgets: ['Under £1,000', '£1,000 - £3,000', '£3,000 - £6,000', '£6,000+'],
     timelines: ['Urgent (Within 1-2 Weeks)', 'Within 2-4 Weeks', 'Next 1-2 Months', 'Flexible / Planning'],
   },
   sectionVisibility: { hero: true, form: true, faqs: true },
@@ -833,7 +833,10 @@ export function applyPublicContent(payload: {
   if (Array.isArray(settings.client_reviews)) replaceArray(CLIENT_REVIEWS, settings.client_reviews as TestimonialItem[]);
   if (isRecord(settings.home_content)) Object.assign(HOME_CONTENT, settings.home_content);
   if (isRecord(settings.about_content)) Object.assign(ABOUT_CONTENT, settings.about_content);
-  if (isRecord(settings.contact_content)) Object.assign(CONTACT_CONTENT, settings.contact_content);
+  if (isRecord(settings.contact_content)) {
+    Object.assign(CONTACT_CONTENT, settings.contact_content);
+    normalizeContactBudgets();
+  }
   if (isRecord(settings.services_content)) Object.assign(SERVICES_CONTENT, settings.services_content);
   if (isRecord(settings.portfolio_content)) Object.assign(PORTFOLIO_CONTENT, settings.portfolio_content);
   if (isRecord(settings.global_content)) Object.assign(GLOBAL_CONTENT, settings.global_content);
@@ -883,11 +886,21 @@ export function applyCmsDocumentPreview(key: string, document: Record<string, un
     if (Array.isArray(document.categories)) replaceArray(PORTFOLIO_CATEGORIES, document.categories as string[]);
   }
   if (key === 'contact') {
-    if (isRecord(document.content)) Object.assign(CONTACT_CONTENT, document.content);
+    if (isRecord(document.studioInfo)) Object.assign(STUDIO_INFO, document.studioInfo);
+    if (isRecord(document.content)) {
+      Object.assign(CONTACT_CONTENT, document.content);
+      normalizeContactBudgets();
+    }
     if (Array.isArray(document.faqs)) replaceArray(FAQS, document.faqs as typeof FAQS);
   }
   if (isRecord(document.seo)) PAGE_SEO[key] = document.seo;
   normalizeUploadedMedia();
+}
+
+function normalizeContactBudgets(): void {
+  CONTACT_CONTENT.form.budgets = CONTACT_CONTENT.form.budgets.map((budget) =>
+    budget.replace(/Â£/g, '£'),
+  );
 }
 
 function normalizeUploadedMedia(): void {

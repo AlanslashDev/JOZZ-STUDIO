@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUpRight, Image as ImageIcon, Sparkles, Eye, CheckCircle2, Tag, Calendar, Layers, Play } from 'lucide-react';
+import { ArrowUpRight, Image as ImageIcon, Eye, Play } from 'lucide-react';
 import { PORTFOLIO_ITEMS, PORTFOLIO_CONTENT, PORTFOLIO_CATEGORIES } from '../data/content';
 import { LightboxModal } from '../components/ui/LightboxModal';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
-import { PortfolioItem, PortfolioCategory } from '../types';
+import { PortfolioItem } from '../types';
 
 const PortfolioPreviewImage: React.FC<{ src: string; alt: string; title: string }> = ({ src, alt, title }) => {
   const [failed, setFailed] = useState(false);
   if (failed) return <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center"><div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-brand-amber mb-3"><ImageIcon className="w-6 h-6" /></div><p className="text-[11px] font-mono text-foreground-muted max-w-[220px] leading-tight">{title}</p></div>;
-  return <img src={src} alt={alt} onError={() => setFailed(true)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90" loading="eager" />;
+  return <img src={src} alt={alt} onError={() => setFailed(true)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90" loading="lazy" decoding="async" />;
 };
 
 export const PortfolioPage: React.FC = () => {
@@ -100,8 +100,8 @@ export const PortfolioPage: React.FC = () => {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           <AnimatePresence>
-            {filteredItems.map((item, idx) => {
-              const previewImage = item.thumbnail || item.imageUrl;
+            {filteredItems.map((item) => {
+              const previewImage = item.thumbnail || item.imageUrl || (item.type === 'video' ? undefined : item.mediaUrl);
               const isVideo = item.type === 'video';
 
               return (

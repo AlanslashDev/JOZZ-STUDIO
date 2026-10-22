@@ -6,6 +6,7 @@ use Joozz\App\ContentRepository;
 use Joozz\App\Http;
 
 $bootstrapCandidates = [
+    __DIR__ . '/backend/config/bootstrap.php',
     __DIR__ . '/config/bootstrap.php',
     __DIR__ . '/../config/bootstrap.php',
     __DIR__ . '/../../config/bootstrap.php',
@@ -115,6 +116,69 @@ if ($method === 'POST' && $route === '/admin/auth/logout') {
 if ($method === 'GET' && $route === '/admin/auth/me') {
     $admin = Auth::requireAdmin();
     Http::ok(['admin' => $admin, 'csrfToken' => $_SESSION['csrf']]);
+}
+
+if ($method === 'GET' && $route === '/admin/admins') {
+    Auth::requireOwner(Auth::requireAdmin());
+    $items = db()->query('SELECT id, username, role, is_active AS isActive, created_at AS createdAt FROM admins ORDER BY id')->fetchAll();
+    foreach ($items as &$item) $item['isActive'] = (bool) $item['isActive'];
+    unset($item);
+    Http::ok(['items' => $items]);
+}
+
+if ($method === 'POST' && $route === '/admin/admins') {
+    $admin = Auth::requireAdmin();
+    Auth::requireOwner($admin);
+    $body = Http::jsonBody();
+    $username = trim((string) ($body['username'] ?? ''));
+    $password = (string) ($body['password'] ?? '');
+    $role = (string) ($body['role'] ?? 'admin');
+    if (!preg_match('/^[a-zA-Z0-9._-]{3,60}$/', $username)) Http::error('Use a username with 3–60 letters, numbers, dots, underscores, or hyphens.', 422);
+    if (strlen($password) < 14) Http::error('Choose a password with at least 14 characters.', 422);
+    if (!in_array($role, ['admin', 'owner'], true)) Http::error('Choose a valid account role.', 422);
+    $exists = db()->prepare('SELECT id FROM admins WHERE username = :username LIMIT 1');
+    $exists->execute(['username' => $username]);
+    if ($exists->fetchColumn()) Http::error('That username is already in use.', 409);
+    $statement = db()->prepare('INSERT INTO admins (username, password_hash, role) VALUES (:username, :password_hash, :role)');
+    $statement->execute(['username' => $username, 'password_hash' => Auth::hashPassword($password), 'role' => $role]);
+    $id = (int) db()->lastInsertId();
+    adminAudit($admin, 'created', 'admin', (string) $id);
+    Http::ok(['id' => $id], 201);
+}
+
+if ($method === 'PATCH' && preg_match('#^/admin/admins/(\d+)$#', $route, $matches)) {
+    $admin = Auth::requireAdmin();
+    Auth::requireOwner($admin);
+    $id = (int) $matches[1];
+    $body = Http::jsonBody();
+    $username = trim((string) ($body['username'] ?? ''));
+    $role = (string) ($body['role'] ?? '');
+    $isActive = filter_var($body['isActive'] ?? null, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
+    $password = (string) ($body['password'] ?? '');
+    if (!preg_match('/^[a-zA-Z0-9._-]{3,60}$/', $username)) Http::error('Use a username with 3–60 letters, numbers, dots, underscores, or hyphens.', 422);
+    if (!in_array($role, ['admin', 'owner'], true) || $isActive === null) Http::error('Choose a valid role and account status.', 422);
+    if ($password !== '' && strlen($password) < 14) Http::error('A new password must have at least 14 characters.', 422);
+    $targetQuery = db()->prepare('SELECT role, is_active FROM admins WHERE id = :id LIMIT 1');
+    $targetQuery->execute(['id' => $id]);
+    $target = $targetQuery->fetch();
+    if (!$target) Http::error('Admin account not found.', 404);
+    $nameQuery = db()->prepare('SELECT id FROM admins WHERE username = :username AND id <> :id LIMIT 1');
+    $nameQuery->execute(['username' => $username, 'id' => $id]);
+    if ($nameQuery->fetchColumn()) Http::error('That username is already in use.', 409);
+    if ($id === (int) $admin['id'] && (!$isActive || $role !== 'owner')) Http::error('You cannot deactivate or demote your own owner account.', 422);
+    if ($target['role'] === 'owner' && (bool) $target['is_active'] && (!$isActive || $role !== 'owner')) {
+        $activeOwners = (int) db()->query("SELECT COUNT(*) FROM admins WHERE role = 'owner' AND is_active = 1")->fetchColumn();
+        if ($activeOwners <= 1) Http::error('At least one active owner account must remain.', 422);
+    }
+    if ($password === '') {
+        $statement = db()->prepare('UPDATE admins SET username = :username, role = :role, is_active = :active WHERE id = :id');
+        $statement->execute(['username' => $username, 'role' => $role, 'active' => (int) $isActive, 'id' => $id]);
+    } else {
+        $statement = db()->prepare('UPDATE admins SET username = :username, role = :role, is_active = :active, password_hash = :hash WHERE id = :id');
+        $statement->execute(['username' => $username, 'role' => $role, 'active' => (int) $isActive, 'hash' => Auth::hashPassword($password), 'id' => $id]);
+    }
+    adminAudit($admin, 'updated', 'admin', (string) $id);
+    Http::ok(['updated' => true]);
 }
 
 if ($method === 'GET' && $route === '/admin/dashboard') {
@@ -312,6 +376,37 @@ function ensureCmsDocument(string $key): array {
     return $statement->fetch();
 }
 
+/** Keep About Page team edits in the shared Global Content team collection. */
+function syncAboutTeamToGlobal(array $team, int $adminId, bool $publish = false): void {
+    $row = ensureCmsDocument('global');
+    $draft = json_decode($row['draft_content'], true) ?? [];
+    if (!is_array($draft['collections'] ?? null)) $draft['collections'] = [];
+    $draft['collections']['team'] = $team;
+    $draftJson = json_encode($draft, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+
+    if (!$publish) {
+        $update = db()->prepare('UPDATE cms_documents SET draft_content=:draft, updated_by=:admin WHERE document_key=\'global\'');
+        $update->execute(['draft' => $draftJson, 'admin' => $adminId]);
+        return;
+    }
+
+    $published = json_decode($row['published_content'], true) ?? [];
+    if (!is_array($published['collections'] ?? null)) $published['collections'] = [];
+    $published['collections']['team'] = $team;
+    $publishedJson = json_encode($published, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    db()->beginTransaction();
+    try {
+        $revision = db()->prepare("INSERT INTO cms_revisions(document_key,snapshot,action,created_by) VALUES('global',:snapshot,'published',:admin)");
+        $revision->execute(['snapshot' => $row['published_content'], 'admin' => $adminId]);
+        $update = db()->prepare('UPDATE cms_documents SET draft_content=:draft, published_content=:published, updated_by=:admin, published_at=NOW() WHERE document_key=\'global\'');
+        $update->execute(['draft' => $draftJson, 'published' => $publishedJson, 'admin' => $adminId]);
+        db()->commit();
+    } catch (Throwable $error) {
+        db()->rollBack();
+        throw $error;
+    }
+}
+
 function validateCmsContent(mixed $value, string $path='content', int $depth=0): void {
     if($depth>12)Http::error('This content is nested too deeply.',422);
     if(is_string($value)){
@@ -341,10 +436,10 @@ if ($method==='GET' && preg_match('#^/admin/cms/documents/([a-z0-9_-]+)$#',$rout
 }
 if ($method==='PUT' && preg_match('#^/admin/cms/documents/([a-z0-9_-]+)/draft$#',$route,$m)) {
     $admin=Auth::requireAdmin();ensureCmsDocument($m[1]);$body=Http::jsonBody();$content=$body['content']??null;if(!is_array($content))Http::error('Page content is required.',422);validateCmsContent($content);
-    $json=json_encode($content,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);$statement=db()->prepare("UPDATE cms_documents SET draft_content=:content,status='draft',updated_by=:admin WHERE document_key=:key");$statement->execute(['content'=>$json,'admin'=>$admin['id'],'key'=>$m[1]]);adminAudit($admin,'draft_saved','cms_document',$m[1]);Http::ok(['saved'=>true,'savedAt'=>gmdate(DATE_ATOM)]);
+    $json=json_encode($content,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);$statement=db()->prepare("UPDATE cms_documents SET draft_content=:content,status='draft',updated_by=:admin WHERE document_key=:key");$statement->execute(['content'=>$json,'admin'=>$admin['id'],'key'=>$m[1]]);if($m[1]==='about'&&is_array($content['team']??null))syncAboutTeamToGlobal($content['team'],(int)$admin['id']);adminAudit($admin,'draft_saved','cms_document',$m[1]);Http::ok(['saved'=>true,'savedAt'=>gmdate(DATE_ATOM)]);
 }
 if ($method==='POST' && preg_match('#^/admin/cms/documents/([a-z0-9_-]+)/publish$#',$route,$m)) {
-    $admin=Auth::requireAdmin();$row=ensureCmsDocument($m[1]);db()->beginTransaction();try{$revision=db()->prepare("INSERT INTO cms_revisions(document_key,snapshot,action,created_by) VALUES(:key,:snapshot,'published',:admin)");$revision->execute(['key'=>$m[1],'snapshot'=>$row['published_content'],'admin'=>$admin['id']]);$statement=db()->prepare("UPDATE cms_documents SET published_content=draft_content,status='published',published_at=NOW(),updated_by=:admin WHERE document_key=:key");$statement->execute(['admin'=>$admin['id'],'key'=>$m[1]]);db()->commit();}catch(Throwable $error){db()->rollBack();throw $error;}clearPublicContent();adminAudit($admin,'published','cms_document',$m[1]);Http::ok(['published'=>true,'publishedAt'=>gmdate(DATE_ATOM)]);
+    $admin=Auth::requireAdmin();$row=ensureCmsDocument($m[1]);$draft=json_decode($row['draft_content'],true)??[];db()->beginTransaction();try{$revision=db()->prepare("INSERT INTO cms_revisions(document_key,snapshot,action,created_by) VALUES(:key,:snapshot,'published',:admin)");$revision->execute(['key'=>$m[1],'snapshot'=>$row['published_content'],'admin'=>$admin['id']]);$statement=db()->prepare("UPDATE cms_documents SET published_content=draft_content,status='published',published_at=NOW(),updated_by=:admin WHERE document_key=:key");$statement->execute(['admin'=>$admin['id'],'key'=>$m[1]]);db()->commit();}catch(Throwable $error){db()->rollBack();throw $error;}if($m[1]==='about'&&is_array($draft['team']??null))syncAboutTeamToGlobal($draft['team'],(int)$admin['id'],true);clearPublicContent();adminAudit($admin,'published','cms_document',$m[1]);Http::ok(['published'=>true,'publishedAt'=>gmdate(DATE_ATOM)]);
 }
 if ($method==='POST' && preg_match('#^/admin/cms/documents/([a-z0-9_-]+)/revisions/(\d+)/restore$#',$route,$m)) {
     $admin=Auth::requireAdmin();ensureCmsDocument($m[1]);$revision=db()->prepare('SELECT snapshot FROM cms_revisions WHERE id=:id AND document_key=:key LIMIT 1');$revision->execute(['id'=>(int)$m[2],'key'=>$m[1]]);$snapshot=$revision->fetchColumn();if(!is_string($snapshot))Http::error('Revision not found.',404);$statement=db()->prepare("UPDATE cms_documents SET draft_content=:snapshot,status='draft',updated_by=:admin WHERE document_key=:key");$statement->execute(['snapshot'=>$snapshot,'admin'=>$admin['id'],'key'=>$m[1]]);adminAudit($admin,'restored','cms_document',$m[1]);Http::ok(['restored'=>true,'draft'=>json_decode($snapshot,true)??[]]);
@@ -353,7 +448,53 @@ if ($method==='POST' && preg_match('#^/admin/cms/documents/([a-z0-9_-]+)/revisio
 if ($method === 'GET' && preg_match('#^/admin/content/(services|portfolio|faqs|team|reviews|navigation|redirects|pages|categories)$#',$route,$m)) { Auth::requireAdmin(); Http::ok(['items'=>editorialList($m[1])]); }
 if (($method === 'POST' || $method === 'PUT') && preg_match('#^/admin/content/(services|portfolio|faqs|categories|redirects|navigation|pages)(?:/(\d+))?$#',$route,$m)) { $admin=Auth::requireAdmin(); if($method==='PUT'&&!isset($m[2]))Http::error('Choose an item to update.',422); $id=isset($m[2])?(int)$m[2]:null; Http::ok(['id'=>editorialSave($m[1],Http::jsonBody(),$id,$admin)],$id?200:201); }
 if ($method === 'DELETE' && preg_match('#^/admin/content/(services|portfolio|faqs|categories|redirects|navigation)/(\d+)$#',$route,$m)) { $admin=Auth::requireAdmin(); Auth::requireOwner($admin); $tables=['services'=>'services','portfolio'=>'portfolio_items','faqs'=>'faqs','categories'=>'portfolio_categories','redirects'=>'redirects','navigation'=>'navigation_items'];$s=db()->prepare('DELETE FROM '.$tables[$m[1]].' WHERE id=:id');$s->execute(['id'=>(int)$m[2]]);if(!$s->rowCount())Http::error('Item not found.',404);adminAudit($admin,'deleted',$m[1],$m[2]);clearPublicContent();Http::ok(['deleted'=>true]); }
-if ($method === 'POST' && $route === '/admin/media') { $admin=Auth::requireAdmin(); if(empty($_FILES['file'])||$_FILES['file']['error']!==UPLOAD_ERR_OK)Http::error('Choose a file to upload.',422);$f=$_FILES['file'];$maxUpload=max(1,(int)(env_value('UPLOAD_MAX_BYTES','26214400')??'26214400'));if($f['size']>$maxUpload)Http::error('The selected file is too large.',422);$mime=(new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']);$allowed=['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm'];if(!in_array($mime,$allowed,true))Http::error('Upload a JPG, PNG, WebP, GIF, MP4, or WebM file.',422);$ext=['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp','image/gif'=>'gif','video/mp4'=>'mp4','video/webm'=>'webm'][$mime];$name=bin2hex(random_bytes(16)).'.'.$ext;$requestedSection=strtolower(trim((string)($_POST['section']??'general')));$section=preg_replace('/[^a-z0-9-]+/','-', $requestedSection) ?: 'general';$section=trim($section,'-');if($section===''||strlen($section)>40)$section='general';$dir=BASE_PATH.'/storage/uploads/'.$section;if(!is_dir($dir)&&!mkdir($dir,0775,true)&&!is_dir($dir))Http::error('Upload folder could not be created.',500);if(!move_uploaded_file($f['tmp_name'],$dir.'/'.$name))Http::error('Upload could not be stored.',500);$path='/uploads/'.$section.'/'.$name;$s=db()->prepare('INSERT INTO media(path,original_name,mime_type,size_bytes,alt_text,created_by) VALUES(:p,:n,:m,:z,:a,:u)');$s->execute(['p'=>$path,'n'=>mb_substr(basename((string)$f['name']),0,255),'m'=>$mime,'z'=>$f['size'],'a'=>mb_substr(trim((string)($_POST['altText']??'')),0,255),'u'=>$admin['id']]);$mediaId=(int)db()->lastInsertId();adminAudit($admin,'uploaded','media',(string)$mediaId);Http::ok(['id'=>$mediaId,'url'=>$path],201); }
+if ($method === 'POST' && $route === '/admin/media') {
+    $admin = Auth::requireAdmin();
+    $phpUploadLimit = ini_get('upload_max_filesize') ?: 'unknown';
+    $phpPostLimit = ini_get('post_max_size') ?: 'unknown';
+    $file = $_FILES['file'] ?? null;
+    if (!is_array($file)) {
+        Http::error("No file reached PHP. Check cPanel PHP upload_max_filesize ($phpUploadLimit) and post_max_size ($phpPostLimit).", 413);
+    }
+    $uploadError = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($uploadError !== UPLOAD_ERR_OK) {
+        if (in_array($uploadError, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
+            Http::error("The file exceeds the hosting PHP upload limit ($phpUploadLimit). Increase upload_max_filesize and post_max_size in cPanel.", 413);
+        }
+        if ($uploadError === UPLOAD_ERR_NO_FILE) Http::error('Choose a file to upload.', 422);
+        if ($uploadError === UPLOAD_ERR_PARTIAL) Http::error('The upload was interrupted. Please try again.', 400);
+        Http::error('PHP could not save the uploaded file. Check hosting temporary storage and permissions.', 500);
+    }
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+    $extensions = [
+        'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif',
+        'video/mp4' => 'mp4', 'video/webm' => 'webm',
+    ];
+    if (!isset($extensions[$mime])) Http::error('Upload a JPG, PNG, WebP, GIF, MP4, or WebM file.', 422);
+    $defaultLimit = str_starts_with($mime, 'video/') ? '104857600' : '26214400';
+    $setting = str_starts_with($mime, 'video/') ? 'VIDEO_UPLOAD_MAX_BYTES' : 'UPLOAD_MAX_BYTES';
+    $maxUpload = max(1, (int) (env_value($setting, $defaultLimit) ?? $defaultLimit));
+    if ((int) $file['size'] > $maxUpload) {
+        Http::error('The file exceeds the website limit of ' . ceil($maxUpload / 1048576) . ' MB.', 413);
+    }
+    $name = bin2hex(random_bytes(16)) . '.' . $extensions[$mime];
+    $requestedSection = strtolower(trim((string) ($_POST['section'] ?? 'general')));
+    $section = trim(preg_replace('/[^a-z0-9-]+/', '-', $requestedSection) ?: 'general', '-');
+    if ($section === '' || strlen($section) > 40) $section = 'general';
+    $dir = BASE_PATH . '/storage/uploads/' . $section;
+    if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) Http::error('Upload folder could not be created.', 500);
+    if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $name)) Http::error('Upload could not be stored.', 500);
+    $path = '/uploads/' . $section . '/' . $name;
+    $statement = db()->prepare('INSERT INTO media(path,original_name,mime_type,size_bytes,alt_text,created_by) VALUES(:p,:n,:m,:z,:a,:u)');
+    $statement->execute([
+        'p' => $path, 'n' => mb_substr(basename((string) $file['name']), 0, 255),
+        'm' => $mime, 'z' => $file['size'],
+        'a' => mb_substr(trim((string) ($_POST['altText'] ?? '')), 0, 255), 'u' => $admin['id'],
+    ]);
+    $mediaId = (int) db()->lastInsertId();
+    adminAudit($admin, 'uploaded', 'media', (string) $mediaId);
+    Http::ok(['id' => $mediaId, 'url' => $path], 201);
+}
 if ($method === 'GET' && $route === '/admin/media') {
     Auth::requireAdmin();
     $query=mb_substr(trim((string)($_GET['q']??'')),0,100);

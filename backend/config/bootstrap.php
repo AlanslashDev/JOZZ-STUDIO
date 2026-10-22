@@ -14,7 +14,15 @@ function env(): array
     }
 
     $values = [];
+    // Standard deployment keeps the environment file beside app/config. Also
+    // accept the document-root .env used by earlier cPanel packages.
     $path = BASE_PATH . '/.env';
+    if (!is_file($path)) {
+        $legacyPath = dirname(BASE_PATH) . '/.env';
+        if (is_file($legacyPath)) {
+            $path = $legacyPath;
+        }
+    }
     if (is_file($path)) {
         foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
             if (str_starts_with(trim($line), '#') || !str_contains($line, '=')) {
@@ -38,7 +46,15 @@ ini_set('display_startup_errors', $production ? '0' : '1');
 ini_set('log_errors', '1');
 
 set_exception_handler(static function (Throwable $error): never {
-    error_log($error->__toString());
+    // Avoid logging stack-trace arguments: database and login credentials can
+    // appear in PDO::__construct() and Auth::login() frames.
+    error_log(sprintf(
+        '%s: %s in %s:%d',
+        get_class($error),
+        $error->getMessage(),
+        $error->getFile(),
+        $error->getLine()
+    ));
     http_response_code(500);
     $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
     if (str_contains($path, '/api/v1/')) {

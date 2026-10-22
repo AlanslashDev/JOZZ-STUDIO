@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { CORE_SERVICES, CONTACT_CONTENT } from '../../data/content';
 import { ApiError, publicApi } from '../../lib/api';
 

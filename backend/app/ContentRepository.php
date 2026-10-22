@@ -12,7 +12,8 @@ final class ContentRepository
         $publicSettingKeys = [
             'studio_info', 'stats', 'creative_process', 'production_team',
             'marquee_keywords', 'testimonial', 'client_reviews',
-            'home_content', 'about_content', 'contact_content',
+            'home_content', 'about_content', 'services_content',
+            'portfolio_content', 'global_content', 'contact_content',
         ];
         $placeholders = implode(',', array_fill(0, count($publicSettingKeys), '?'));
         $statement = \db()->prepare("SELECT setting_key, setting_value FROM site_settings WHERE setting_key IN ($placeholders)");
@@ -59,10 +60,14 @@ final class ContentRepository
         try {
             $documents = \db()->query('SELECT document_key, published_content FROM cms_documents')->fetchAll();
             $sharedCollections = [];
+            $hasSharedTeam = false;
             foreach ($documents as $row) {
                 if ($row['document_key'] !== 'global') continue;
                 $globalDocument = json_decode($row['published_content'], true);
-                if (is_array($globalDocument) && isset($globalDocument['collections']) && is_array($globalDocument['collections'])) $sharedCollections = $globalDocument['collections'];
+                if (is_array($globalDocument) && isset($globalDocument['collections']) && is_array($globalDocument['collections'])) {
+                    $sharedCollections = $globalDocument['collections'];
+                    $hasSharedTeam = array_key_exists('team', $sharedCollections) && is_array($sharedCollections['team']);
+                }
             }
             foreach ($documents as $row) {
                 $document = json_decode($row['published_content'], true);
@@ -96,7 +101,10 @@ final class ContentRepository
                         if (isset($document['content'])) $payload['settings']['about_content'] = $document['content'];
                         if (isset($document['studioInfo'])) $payload['settings']['studio_info'] = $document['studioInfo'];
                         if (isset($document['process'])) $payload['settings']['creative_process'] = $document['process'];
-                        if (isset($document['team'])) $payload['settings']['production_team'] = $document['team'];
+                        // Global Content owns the shared team once its collection exists.
+                        // Ignore the older About-page copy so the live site matches the
+                        // canonical list shown under Global Content → Team Members.
+                        if (!$hasSharedTeam && isset($document['team'])) $payload['settings']['production_team'] = $document['team'];
                         if (isset($document['seo'])) $payload['seo']['about'] = $document['seo'];
                         break;
                     case 'services':
@@ -112,6 +120,7 @@ final class ContentRepository
                         break;
                     case 'contact':
                         if (isset($document['content'])) $payload['settings']['contact_content'] = $document['content'];
+                        if (isset($document['studioInfo'])) $payload['settings']['studio_info'] = $document['studioInfo'];
                         if (isset($document['faqs']) && is_array($document['faqs'])) $payload['faqs'] = $document['faqs'];
                         if (isset($document['seo'])) $payload['seo']['contact'] = $document['seo'];
                         break;

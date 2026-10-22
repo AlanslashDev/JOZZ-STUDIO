@@ -1,85 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import {
-  PenTool,
-  Palette,
-  FileText,
-  CreditCard,
-  BookOpen,
-  Printer,
-  Camera,
-  ArrowUpRight,
-  CheckCircle2,
-  Sparkles,
-  ShieldCheck,
-  Clock,
-  Layers,
-  ArrowRight
-} from 'lucide-react';
+import { ShieldCheck, ArrowRight } from 'lucide-react';
 import { CORE_SERVICES, SERVICES_CONTENT } from '../data/content';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { ServiceCard } from '../components/ui/ServiceCard';
-
-const iconMap: Record<string, React.ElementType> = {
-  PenTool,
-  Palette,
-  FileText,
-  CreditCard,
-  BookOpen,
-  Printer,
-  Camera,
-};
-
-const SERVICE_TIERS = [
-  {
-    name: 'Bespoke Brand Mark',
-    badge: 'Core Identity',
-    priceEstimate: 'From Â£950',
-    turnaround: '5â€“7 Business Days',
-    idealFor: 'Early-stage founders & focused rebrands',
-    features: [
-      'Primary & Secondary Vector Logo Marks',
-      'Full Vector Asset Kit (AI, EPS, SVG, PDF, PNG)',
-      'Monochrome & Inverted Color Variations',
-      'Basic Typography Pairing Recommendations',
-      '2 Revisions & Feedback Rounds'
-    ],
-    recommendedService: 'Logo Design',
-  },
-  {
-    name: 'Complete Brand Universe',
-    badge: 'Signature Studio Suite',
-    popular: true,
-    priceEstimate: 'From Â£2,400',
-    turnaround: '2â€“3 Weeks',
-    idealFor: 'Growing enterprises commanding premium market tier',
-    features: [
-      'Everything in Bespoke Brand Mark',
-      'Comprehensive Brand Style Guideline Book',
-      'Curated Typography & Color System (CMYK, RGB, Pantone)',
-      'Stationery Suite (Business Card & Letterhead setup)',
-      'Social Media Brand Kit & Graphic Patterns',
-      'Unlimited Creative Concept Explorations'
-    ],
-    recommendedService: 'Branding & Visual Identity',
-  },
-  {
-    name: 'Print & Editorial Suite',
-    badge: 'Print Production',
-    priceEstimate: 'From Â£1,600',
-    turnaround: '1â€“2 Weeks',
-    idealFor: 'Magazines, lookbooks, brochures & exhibitions',
-    features: [
-      'Multi-page Editorial Layout & Grid System',
-      'High-res Press-Ready CMYK Imposition & Bleeds',
-      'Specialty Finish Specs (Foil, Emboss, Spot UV)',
-      'Interactive Digital PDF Editions',
-      'Direct Commercial Printer Support'
-    ],
-    recommendedService: 'Brochure & Poster Design',
-  }
-];
 
 export const ServicesPage: React.FC = () => {
   return (

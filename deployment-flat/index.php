@@ -18,7 +18,9 @@ Http::securityHeaders();
 Http::allowConfiguredOrigin();
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && preg_match('#^/uploads/(?:(?<section>[a-z0-9-]+)/)?(?<filename>[a-f0-9]{32}\.(?:jpg|png|webp|gif|mp4|webm))$#', $path, $mediaMatch)) {
+// Allow the app to run at either the domain root or a local Apache subfolder
+// such as /joozz/public.
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && preg_match('#(?:^|/)uploads/(?:(?<section>[a-z0-9-]+)/)?(?<filename>[a-f0-9]{32}\.(?:jpg|png|webp|gif|mp4|webm))$#', $path, $mediaMatch)) {
     $relativeDirectory = !empty($mediaMatch['section']) ? $mediaMatch['section'] . '/' : '';
     $file = BASE_PATH . '/storage/uploads/' . $relativeDirectory . $mediaMatch['filename'];
     if (!is_file($file)) { http_response_code(404); exit; }
@@ -113,6 +115,69 @@ if ($method === 'POST' && $route === '/admin/auth/logout') {
 if ($method === 'GET' && $route === '/admin/auth/me') {
     $admin = Auth::requireAdmin();
     Http::ok(['admin' => $admin, 'csrfToken' => $_SESSION['csrf']]);
+}
+
+if ($method === 'GET' && $route === '/admin/admins') {
+    Auth::requireOwner(Auth::requireAdmin());
+    $items = db()->query('SELECT id, username, role, is_active AS isActive, created_at AS createdAt FROM admins ORDER BY id')->fetchAll();
+    foreach ($items as &$item) $item['isActive'] = (bool) $item['isActive'];
+    unset($item);
+    Http::ok(['items' => $items]);
+}
+
+if ($method === 'POST' && $route === '/admin/admins') {
+    $admin = Auth::requireAdmin();
+    Auth::requireOwner($admin);
+    $body = Http::jsonBody();
+    $username = trim((string) ($body['username'] ?? ''));
+    $password = (string) ($body['password'] ?? '');
+    $role = (string) ($body['role'] ?? 'admin');
+    if (!preg_match('/^[a-zA-Z0-9._-]{3,60}$/', $username)) Http::error('Use a username with 3–60 letters, numbers, dots, underscores, or hyphens.', 422);
+    if (strlen($password) < 14) Http::error('Choose a password with at least 14 characters.', 422);
+    if (!in_array($role, ['admin', 'owner'], true)) Http::error('Choose a valid account role.', 422);
+    $exists = db()->prepare('SELECT id FROM admins WHERE username = :username LIMIT 1');
+    $exists->execute(['username' => $username]);
+    if ($exists->fetchColumn()) Http::error('That username is already in use.', 409);
+    $statement = db()->prepare('INSERT INTO admins (username, password_hash, role) VALUES (:username, :password_hash, :role)');
+    $statement->execute(['username' => $username, 'password_hash' => Auth::hashPassword($password), 'role' => $role]);
+    $id = (int) db()->lastInsertId();
+    adminAudit($admin, 'created', 'admin', (string) $id);
+    Http::ok(['id' => $id], 201);
+}
+
+if ($method === 'PATCH' && preg_match('#^/admin/admins/(\d+)$#', $route, $matches)) {
+    $admin = Auth::requireAdmin();
+    Auth::requireOwner($admin);
+    $id = (int) $matches[1];
+    $body = Http::jsonBody();
+    $username = trim((string) ($body['username'] ?? ''));
+    $role = (string) ($body['role'] ?? '');
+    $isActive = filter_var($body['isActive'] ?? null, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
+    $password = (string) ($body['password'] ?? '');
+    if (!preg_match('/^[a-zA-Z0-9._-]{3,60}$/', $username)) Http::error('Use a username with 3–60 letters, numbers, dots, underscores, or hyphens.', 422);
+    if (!in_array($role, ['admin', 'owner'], true) || $isActive === null) Http::error('Choose a valid role and account status.', 422);
+    if ($password !== '' && strlen($password) < 14) Http::error('A new password must have at least 14 characters.', 422);
+    $targetQuery = db()->prepare('SELECT role, is_active FROM admins WHERE id = :id LIMIT 1');
+    $targetQuery->execute(['id' => $id]);
+    $target = $targetQuery->fetch();
+    if (!$target) Http::error('Admin account not found.', 404);
+    $nameQuery = db()->prepare('SELECT id FROM admins WHERE username = :username AND id <> :id LIMIT 1');
+    $nameQuery->execute(['username' => $username, 'id' => $id]);
+    if ($nameQuery->fetchColumn()) Http::error('That username is already in use.', 409);
+    if ($id === (int) $admin['id'] && (!$isActive || $role !== 'owner')) Http::error('You cannot deactivate or demote your own owner account.', 422);
+    if ($target['role'] === 'owner' && (bool) $target['is_active'] && (!$isActive || $role !== 'owner')) {
+        $activeOwners = (int) db()->query("SELECT COUNT(*) FROM admins WHERE role = 'owner' AND is_active = 1")->fetchColumn();
+        if ($activeOwners <= 1) Http::error('At least one active owner account must remain.', 422);
+    }
+    if ($password === '') {
+        $statement = db()->prepare('UPDATE admins SET username = :username, role = :role, is_active = :active WHERE id = :id');
+        $statement->execute(['username' => $username, 'role' => $role, 'active' => (int) $isActive, 'id' => $id]);
+    } else {
+        $statement = db()->prepare('UPDATE admins SET username = :username, role = :role, is_active = :active, password_hash = :hash WHERE id = :id');
+        $statement->execute(['username' => $username, 'role' => $role, 'active' => (int) $isActive, 'hash' => Auth::hashPassword($password), 'id' => $id]);
+    }
+    adminAudit($admin, 'updated', 'admin', (string) $id);
+    Http::ok(['updated' => true]);
 }
 
 if ($method === 'GET' && $route === '/admin/dashboard') {
@@ -315,8 +380,10 @@ function validateCmsContent(mixed $value, string $path='content', int $depth=0):
     if(is_string($value)){
         if(strlen($value)>200000)Http::error('One of the content fields is too long.',422,['field'=>$path]);
         if(str_contains($value,"\0"))Http::error('Content contains an invalid character.',422,['field'=>$path]);
-        if(preg_match('/[\x00-\x1f\x7f]/',$value))Http::error('Content contains an invalid character.',422,['field'=>$path]);
-        if(preg_match('/^\s*(?:(?:javascript|vbscript|data|file|blob)\s*:|\/\/)/i',$value))Http::error('Unsafe links are not allowed.',422,['field'=>$path]);
+        // Preserve normal editor formatting (newlines and tabs) while rejecting
+        // the remaining non-printable control characters.
+        if(preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/',$value))Http::error('Content contains an invalid character.',422,['field'=>$path]);
+        if(preg_match('/^\s*(?:javascript|vbscript|data|file|blob)\s*:/i',$value))Http::error('Unsafe links are not allowed.',422,['field'=>$path]);
         return;
     }
     if(is_array($value))foreach($value as $key=>$item)validateCmsContent($item,$path.'.'.$key,$depth+1);

@@ -3,7 +3,6 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import Lenis from 'lenis';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
-import { CustomCursor } from './components/layout/CustomCursor';
 import { OpeningAnimation } from './components/ui/OpeningAnimation';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
@@ -50,9 +49,11 @@ const ScrollToTop: React.FC = () => {
 export const App: React.FC = () => {
   const [showIntro, setShowIntro] = useState(() => !new URLSearchParams(window.location.search).has('cmsPreview'));
   const [contentRevision, setContentRevision] = useState(0);
+  const previewDraftApplied = useRef(false);
   const location = useLocation();
   const refreshPublishedContent = useCallback(async () => {
     const payload = await publicApi.bootstrap();
+    if (new URLSearchParams(window.location.search).has('cmsPreview') && previewDraftApplied.current) return;
     applyPublicContent(payload);
     setContentRevision((revision) => revision + 1);
   }, []);
@@ -72,16 +73,22 @@ export const App: React.FC = () => {
   useEffect(() => {
     const refresh = () => { refreshPublishedContent().catch(() => undefined); };
     const storageRefresh = (event: StorageEvent) => { if (event.key === 'joozz-content-published') refresh(); };
+    const visibilityRefresh = () => { if (document.visibilityState === 'visible') refresh(); };
     window.addEventListener('storage', storageRefresh);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', visibilityRefresh);
     const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('joozz-content') : null;
     if (channel) channel.onmessage = (event) => { if (event.data?.type === 'published') refresh(); };
-    return () => { window.removeEventListener('storage', storageRefresh); channel?.close(); };
+    const isCmsPreview = new URLSearchParams(window.location.search).has('cmsPreview');
+    const refreshTimer = isCmsPreview ? null : window.setInterval(refresh, 30_000);
+    return () => { window.removeEventListener('storage', storageRefresh); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', visibilityRefresh); if (refreshTimer !== null) window.clearInterval(refreshTimer); channel?.close(); };
   }, [refreshPublishedContent]);
 
   useEffect(() => {
     const receivePreview = (event: MessageEvent) => {
       if (event.origin !== window.location.origin || event.data?.type !== 'joozz-cms-preview') return;
       if (typeof event.data.key !== 'string' || !event.data.document || typeof event.data.document !== 'object') return;
+      previewDraftApplied.current = true;
       applyCmsDocumentPreview(event.data.key, event.data.document);
       setContentRevision((revision) => revision + 1);
     };
@@ -124,14 +131,16 @@ export const App: React.FC = () => {
 
     lenisRef.current = lenis;
 
+    let animationFrameId = 0;
     function raf(time: number) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      animationFrameId = requestAnimationFrame(raf);
     }
 
-    requestAnimationFrame(raf);
+    animationFrameId = requestAnimationFrame(raf);
 
     return () => {
+      cancelAnimationFrame(animationFrameId);
       lenis.destroy();
       lenisRef.current = null;
     };
@@ -144,9 +153,6 @@ export const App: React.FC = () => {
 
       {/* Noise Texture Overlay */}
       <div className="grain-overlay" />
-
-      {/* Custom cursor */}
-      <CustomCursor />
 
       {/* Scroll restoration */}
       <ScrollToTop />

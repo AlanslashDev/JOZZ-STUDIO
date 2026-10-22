@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// XAMPP Apache serves the PHP API from F:\xampp\htdocs\joozz\public.
-const phpBackend = 'http://localhost/joozz/public'
+// Run the repository PHP API with:
+// php -S 127.0.0.1:8000 -t backend/public backend/router.php
+const phpBackend = 'http://127.0.0.1:8000'
 const proxy = {
   '/api': { target: phpBackend, changeOrigin: false },
   '/uploads': { target: phpBackend, changeOrigin: false },

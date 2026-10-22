@@ -1,0 +1,483 @@
+-- Joozz Studio complete database setup
+-- Import into a NEW, empty database selected in phpMyAdmin.
+-- Includes schema, bundled starter content, and CMS document tables.
+-- Do not use this to replace a live database without exporting a backup first;
+-- migration 003 upserts the bundled starter content into matching records.
+
+-- ===== BEGIN 001_initial.sql =====
+-- Joozz Studio: initial MySQL 8 / MariaDB 10.5+ schema
+-- Import this file into the already-created `jooz_db` database via phpMyAdmin.
+SET NAMES utf8mb4;
+SET time_zone = '+00:00';
+
+CREATE TABLE IF NOT EXISTS admins (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(60) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('owner','admin') NOT NULL DEFAULT 'admin',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS site_settings (
+  setting_key VARCHAR(100) PRIMARY KEY,
+  setting_value JSON NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS services (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  slug VARCHAR(120) NOT NULL UNIQUE,
+  number VARCHAR(10) NOT NULL,
+  title VARCHAR(180) NOT NULL,
+  tagline VARCHAR(255) NOT NULL DEFAULT '',
+  hero_headline_top VARCHAR(180) NULL,
+  hero_headline_main VARCHAR(255) NULL,
+  description TEXT NOT NULL,
+  image_url VARCHAR(2048) NULL,
+  image_alt VARCHAR(255) NULL,
+  ideal_for TEXT NOT NULL,
+  icon_name VARCHAR(80) NOT NULL,
+  status ENUM('published','hidden') NOT NULL DEFAULT 'published',
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX services_public_order (status, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS service_offers (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  service_id BIGINT UNSIGNED NOT NULL,
+  number VARCHAR(10) NOT NULL,
+  title VARCHAR(180) NOT NULL,
+  description TEXT NOT NULL,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  CONSTRAINT fk_offer_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
+  INDEX service_offer_order (service_id, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS service_deliverables (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  service_id BIGINT UNSIGNED NOT NULL,
+  value VARCHAR(500) NOT NULL,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  CONSTRAINT fk_deliverable_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
+  INDEX service_deliverable_order (service_id, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS portfolio_categories (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  slug VARCHAR(120) NOT NULL UNIQUE,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  INDEX category_order (is_active, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS portfolio_items (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  category_id BIGINT UNSIGNED NOT NULL,
+  slug VARCHAR(160) NOT NULL UNIQUE,
+  title VARCHAR(200) NOT NULL,
+  media_type ENUM('image','video') NOT NULL DEFAULT 'image',
+  thumbnail_url VARCHAR(2048) NULL,
+  media_url VARCHAR(2048) NULL,
+  is_embed TINYINT(1) NOT NULL DEFAULT 0,
+  client VARCHAR(180) NULL,
+  project_year VARCHAR(20) NOT NULL,
+  aspect_ratio ENUM('square','portrait','landscape','vertical') NULL,
+  description TEXT NOT NULL,
+  placeholder_label VARCHAR(255) NULL,
+  placeholder_color VARCHAR(120) NULL,
+  status ENUM('published','hidden') NOT NULL DEFAULT 'published',
+  featured TINYINT(1) NOT NULL DEFAULT 0,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_portfolio_category FOREIGN KEY (category_id) REFERENCES portfolio_categories(id),
+  INDEX portfolio_public_order (status, featured, sort_order),
+  INDEX portfolio_category_order (category_id, status, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS portfolio_deliverables (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  portfolio_id BIGINT UNSIGNED NOT NULL,
+  value VARCHAR(500) NOT NULL,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  CONSTRAINT fk_deliverable_portfolio FOREIGN KEY (portfolio_id) REFERENCES portfolio_items(id) ON DELETE CASCADE,
+  INDEX portfolio_deliverable_order (portfolio_id, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS media (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  path VARCHAR(191) NOT NULL UNIQUE,
+  original_name VARCHAR(255) NOT NULL,
+  mime_type VARCHAR(100) NOT NULL,
+  size_bytes BIGINT UNSIGNED NOT NULL,
+  alt_text VARCHAR(255) NOT NULL DEFAULT '',
+  created_by BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_media_admin FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL,
+  INDEX media_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS enquiries (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(160) NOT NULL,
+  email VARCHAR(254) NOT NULL,
+  phone VARCHAR(60) NULL,
+  service VARCHAR(180) NOT NULL,
+  budget VARCHAR(80) NULL,
+  timeline VARCHAR(80) NULL,
+  message TEXT NOT NULL,
+  status ENUM('new','read','replied','archived') NOT NULL DEFAULT 'new',
+  admin_notes TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX enquiry_status_date (status, created_at),
+  INDEX enquiry_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS activity_log (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  admin_id BIGINT UNSIGNED NULL,
+  action VARCHAR(120) NOT NULL,
+  entity_type VARCHAR(80) NOT NULL,
+  entity_id VARCHAR(80) NULL,
+  metadata JSON NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_activity_admin FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL,
+  INDEX activity_entity (entity_type, entity_id),
+  INDEX activity_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ===== END 001_initial.sql =====
+
+
+-- ===== BEGIN 002_content_modules.sql =====
+-- Additional CMS modules. Import after 001_initial.sql.
+SET NAMES utf8mb4;
+
+CREATE TABLE IF NOT EXISTS pages (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  page_key VARCHAR(80) NOT NULL UNIQUE,
+  title VARCHAR(180) NOT NULL,
+  meta_title VARCHAR(180) NULL,
+  meta_description VARCHAR(320) NULL,
+  social_image_id BIGINT UNSIGNED NULL,
+  is_indexable TINYINT(1) NOT NULL DEFAULT 1,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_page_social_image FOREIGN KEY (social_image_id) REFERENCES media(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS page_sections (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  page_id BIGINT UNSIGNED NOT NULL,
+  section_key VARCHAR(100) NOT NULL,
+  content JSON NOT NULL,
+  is_visible TINYINT(1) NOT NULL DEFAULT 1,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_section_page FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE,
+  UNIQUE KEY page_section_key (page_id, section_key),
+  INDEX page_section_order (page_id, is_visible, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS team_members (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(160) NOT NULL,
+  role VARCHAR(160) NULL,
+  image_id BIGINT UNSIGNED NULL,
+  bio TEXT NULL,
+  is_visible TINYINT(1) NOT NULL DEFAULT 1,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  CONSTRAINT fk_team_image FOREIGN KEY (image_id) REFERENCES media(id) ON DELETE SET NULL,
+  INDEX team_public_order (is_visible, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS testimonials (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  quote TEXT NOT NULL,
+  attribution VARCHAR(160) NOT NULL,
+  role VARCHAR(180) NULL,
+  company VARCHAR(180) NULL,
+  rating TINYINT UNSIGNED NULL,
+  avatar_id BIGINT UNSIGNED NULL,
+  is_visible TINYINT(1) NOT NULL DEFAULT 1,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  CONSTRAINT fk_testimonial_avatar FOREIGN KEY (avatar_id) REFERENCES media(id) ON DELETE SET NULL,
+  INDEX testimonial_public_order (is_visible, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS faqs (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  question VARCHAR(500) NOT NULL,
+  answer TEXT NOT NULL,
+  is_visible TINYINT(1) NOT NULL DEFAULT 1,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  UNIQUE KEY faq_question (question(191)),
+  INDEX faq_public_order (is_visible, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS navigation_items (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  location ENUM('header','footer_studio','footer_disciplines') NOT NULL,
+  label VARCHAR(100) NOT NULL,
+  url VARCHAR(500) NOT NULL,
+  is_visible TINYINT(1) NOT NULL DEFAULT 1,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  INDEX navigation_order (location, is_visible, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS redirects (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  source_path VARCHAR(500) NOT NULL UNIQUE,
+  destination_path VARCHAR(500) NOT NULL,
+  http_status SMALLINT UNSIGNED NOT NULL DEFAULT 301,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CHECK (http_status IN (301, 302)),
+  INDEX redirect_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO pages (page_key, title) VALUES
+ ('home','Home'),('about','About'),('services','Services'),('portfolio','Portfolio'),('contact','Contact')
+ON DUPLICATE KEY UPDATE title=VALUES(title);
+
+-- ===== END 002_content_modules.sql =====
+
+
+-- ===== BEGIN 003_seed_existing_content.sql =====
+-- Generated from src/data/content.ts. Re-run: node backend/scripts/generate-seed.mjs
+-- Safe to import repeatedly; existing editorial records are updated by stable keys.
+SET NAMES utf8mb4;
+START TRANSACTION;
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('studio_info', '{"brandName":"Joozz Designing","tagline":"Where creativity meets purpose.","founder":"Prince Srileenj Lopez","experience":"14+ Years","founderBio":"Joozz Designing is a creative graphic design studio dedicated to building strong and memorable visual identities. With over 14 years of professional experience, we specialise in logo design, branding, and high-quality print and digital design solutions.\\n\\nWe create thoughtful, original designs that help businesses stand out and communicate their message clearly. Our services include logo design, brand identity, magazines, brochures, business cards, posters, and other marketing materials—crafted with creativity, precision, and attention to detail.\\n\\nAt Joozz Designing, we believe great design is more than just visuals; it''s about telling your story, connecting with your audience, and leaving a lasting impression.","email":"joozzdesigning@gmail.com","phoneUK":"+44 7777 794577","phoneIndia":"+91 90202 01034","registeredOffice":"71-75 Shelton Street, Covent Garden, London, WC2H 9JQ, United Kingdom","locationUK":"Chelmsford, Essex, United Kingdom","locationIndia":"Kerala / India Hub","socials":{"instagram":"https://instagram.com/#","linkedin":"https://linkedin.com/in/#","behance":"https://behance.net/#","dribbble":"https://dribbble.com/#"}}') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('stats', '[{"number":"01","value":"14+","label":"Years Design Craft","description":"Over 14 continuous years delivering bespoke branding, print media, and digital design excellence.","isConfirmed":true},{"number":"02","value":"300+","label":"Brand Projects","description":"Marks, corporate identities, and editorial publications delivered to founders worldwide.","isConfirmed":true},{"number":"03","value":"100%","label":"Press-Ready Guarantee","description":"Zero printer rejection rate with strict CMYK separations, bleeds, and vector master standards.","isConfirmed":true},{"number":"04","value":"7","label":"Design Disciplines","description":"From custom trademarks to 64-page magazine layouts and editorial fashion photography.","isConfirmed":true}]') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('creative_process', '[{"number":"01","title":"Discover & Align","description":"We unpack your business goals, target demographic, competitive landscape, and aesthetic aspirations through a focused creative brief.","deliverables":["Creative Brief","Aesthetic Moodboard","Project Milestones"]},{"number":"02","title":"Concept & Exploration","description":"Our studio explores distinct creative directions, drafting custom vector marks, typographic lockups, and preliminary layouts.","deliverables":["2–3 Distinct Creative Routes","Contextual Mockups","Presentation Deck"]},{"number":"03","title":"Refine & Polish","description":"Collaborative feedback cycles to fine-tune letterforms, kerning, color systems, and grid alignment until every millimeter is resolved.","deliverables":["Fine-tuned Master Direction","Revisions & Adjustments","Color Calibration"]},{"number":"04","title":"Deliver & Deploy","description":"Exporting comprehensive brand kits, press-ready high-resolution print files, and guidelines ready for immediate deployment.","deliverables":["Full Asset Archive (AI, EPS, PDF, SVG, PNG)","Brand Style Sheet","Prepress File Handover"]}]') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('production_team', '[{"name":"JUSTINE","image":"/media/team/team-justine.jpg"},{"name":"LORAINE","image":"/media/team/team-loraine.jpg"},{"name":"JAIBIN","image":"/media/team/team-jaibin.jpg"},{"name":"PRASANTH","image":"/media/team/team-prasanth.jpg"},{"name":"LAJEESH","image":"/media/team/team-lajeesh.jpg"}]') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('marquee_keywords', '["LOGO DESIGN","BRAND IDENTITY","BROCHURE DESIGN","POSTER DESIGN","BUSINESS CARDS","MAGAZINE LAYOUT","PRINT MEDIA","FASHION PHOTOGRAPHY"]') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('testimonial', '{"quote":"Great design is never an accident. It is the deliberate convergence of relentless precision, timeless typography, and unwavering purpose.","attribution":"Joozz Designing","role":"Studio Philosophy","noteForClient":""}') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('client_reviews', '[{"quote":"We hired Joozz Designing for our complete luxury real estate rebranding. The visual identity, letterpress stationery, and signage mockups they delivered exceeded all our expectations. Exceptional craft and delivery.","attribution":"Marcus Sterling","role":"Client • Managing Director","company":"Apex Architectural & Real Estate (London)","rating":5,"avatar":"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"},{"quote":"Our publication needed high-finish editorial layouts and press-ready packaging files on a tight deadline. Joozz handled prepress checks flawlessly. The final printed magazines look world-class.","attribution":"Elena Rostova","role":"Client • Editor-in-Chief","company":"Luxe Living Magazine","rating":5,"avatar":"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"},{"quote":"From our initial brief to final brand guidelines handover, working with Joozz was seamless. Their custom logo mark and typography system gave our tech startup an immediate edge in investor pitches.","attribution":"David Chen","role":"Client • Co-Founder & CEO","company":"Kinetix Digital Labs","rating":5,"avatar":"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80"},{"quote":"The bespoke menu engineering and gold-foil packaging designs elevated our boutique hotel brand across the UK. Their dedication to tactile paper finishes and color calibration is truly unmatched.","attribution":"Sophia Montgomery","role":"Client • Creative Partner","company":"The Grand Savoy Hospitality","rating":5,"avatar":"https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80"},{"quote":"Joozz crafted our complete haute couture campaign lookbook and visual identity. The balance of negative space, bold editorial typography, and print clarity captured our aesthetic vision effortlessly.","attribution":"Julian Vance","role":"Client • Brand Director","company":"Vance & Co. Luxury Apparel","rating":5,"avatar":"https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80"},{"quote":"Exceptional speed, direct senior communication, and flawless vector assets. They re-architected our corporate identity and event signage across 3 European summits with zero friction.","attribution":"Amara Ndiaye","role":"Client • Head of Global Brand","company":"Novus Energy Group","rating":5,"avatar":"https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80"}]') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('home_content', '{"heroEyebrow":"Joozz Designing Studio","heroHeading":"WE DESIGN\\nWITH PURPOSE\\n& PRECISION.","heroSubheading":"Boutique graphic design studio crafting distinctive brand identities, editorial layouts, and press-ready print media.","ctaText":"VIEW WORK","ctaLink":"/portfolio","secondaryCtaText":"START A PROJECT","secondaryCtaLink":"/contact","heroTags":["Brand Identity","Brochure Design","Business Cards","Magazine Layout","Print Media","Reels / Motion"],"featuredVideo":"/media/home/5092427-hd_1920_1080_30fps - Trim.mp4","featuredVideoPoster":"https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1600&q=80","featuredEyebrow":"Kinetic Showcase","featuredHeading":"Our Work in Motion.","featuredDescription":"From dynamic logo reveals to high-energy editorial lookbooks—bringing brand stories to life with cinematic pacing and precision.","featuredCtaText":"See Full Portfolio","featuredCtaLink":"/portfolio?filter=reel","whyEyebrow":"02 Why Choose Us","whyHeading":"Why choose Joozz Designing?","whyDescription":"14+ years of professional design experience with a creative, reliable, and client-focused approach. We deliver high-quality designs with quick turnaround tailored to your business goals.","whyPoints":[{"number":"01","title":"14+ Years Experience","description":"Over a decade of mastering typography, branding systems, and prepress standards across global industries."},{"number":"02","title":"Client-Centric Craft","description":"Direct collaboration with the principal designer from discovery to delivery without layers of middle management."},{"number":"03","title":"Quick Turnaround","description":"Fast, dependable production cycles tailored to tight marketing launches and commercial print deadlines."},{"number":"04","title":"Press-Ready Precision","description":"Zero printer rejections. Flawless CMYK spot color separations, bleed precision, and infinite-resolution vectors."}],"servicesEyebrow":"03 Core Disciplines","servicesHeading":"End-to-end design & press production.","servicesCtaText":"All services","featuredServiceIds":["corporate-design","logo-brand-identity","branding-marketing-design","print-design","digital-social-media"],"portfolioEyebrow":"04 Selected Works","portfolioHeading":"Selected identity & editorial projects.","portfolioCtaText":"View Full Archive","featuredPortfolioIds":["p1","r1","p2","r2","p3","p4"],"reviewsEyebrow":"Client Endorsements","reviewsHeading":"What founders & directors say","reviewsDescription":"Real feedback from brand founders & creative directors.","aboutEyebrow":"About","aboutHeading":"Independent craft with direct collaboration.","aboutDescription":"Joozz Designing is a creative graphic design studio dedicated to building strong and memorable visual identities. With over 14 years of professional experience, we specialise in logo design, branding, and high-quality print and digital design solutions.\\n\\nWe create thoughtful, original designs that help businesses stand out and communicate their message clearly. Our services include logo design, brand identity, magazines, brochures, business cards, posters, and other marketing materials—crafted with creativity, precision, and attention to detail.\\n\\nAt Joozz Designing, we believe great design is more than just visuals; it''s about telling your story, connecting with your audience, and leaving a lasting impression.","aboutButtonText":"Discover the Studio","aboutToolsText":"Adobe Illustrator • Photoshop • InDesign","finalEyebrow":"Have a Project in Mind?","finalBackgroundText":"LET''S BUILD","finalDescription":"Direct collaboration with senior design expertise. Fast turnarounds, bespoke craftsmanship, and guaranteed press-ready excellence.","finalCtaText":"Request a Proposal","finalCtaLink":"/contact","finalSecondaryText":"Direct Email","introduction":"Independent craft with direct collaboration.","finalCta":"Let’s build something remarkable.","sectionVisibility":{"hero":true,"showcase":true,"about":true,"why":true,"stats":true,"services":true,"portfolio":true,"reviews":true,"quote":true,"finalCta":true}}') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('about_content', '{"heading":"ABOUT US","introduction":"Joozz Designing is a creative graphic design studio dedicated to building strong and memorable visual identities. With over 14 years of professional experience, we specialise in logo design, branding, and high-quality print and digital design solutions.\\n\\nWe create thoughtful, original designs that help businesses stand out and communicate their message clearly. Our services include logo design, brand identity, magazines, brochures, business cards, posters, and other marketing materials—crafted with creativity, precision, and attention to detail.\\n\\nAt Joozz Designing, we believe great design is more than just visuals; it''s about telling your story, connecting with your audience, and leaving a lasting impression.","ctaText":"Start a project","ctaLink":"/contact","founderImage":"/media/about/founder-workspace.jpg","storyEyebrow":"01 The Story","storyHeading":"14+ Years of Design Craft & Purpose.","storyParagraphs":["With over 14 years of dedicated industry experience, Joozz Designing has partnered with ambitious businesses, founders, and enterprises across the United Kingdom and globally to shape powerful brand narratives.","From initial custom logo concepts and corporate branding to complex magazine layouts, packaging, and digital marketing visuals, every project is crafted with creativity, precision, and relentless attention to detail.","Working across the industry-standard Adobe Creative Suite, we ensure every deliverable bridges digital vibrancy with flawless prepress production."],"storyPillars":[{"title":"No Middle Management","description":"Direct collaboration with the principal designer from discovery to delivery."},{"title":"Press-Ready Precision","description":"Flawless color separation, bleeds, and vector master deliverables."}],"manifestoEyebrow":"02 Design Manifesto","manifestoHeading":"The core principles that guide our studio.","manifestoPoints":[{"number":"01","title":"Craft Over Templates","description":"We never recycle off-the-shelf templates or generic presets. Every mark, layout, and color swatch is conceived uniquely for your brand narrative."},{"number":"02","title":"Typography as Voice","description":"Typography is not just text—it is the voice and posture of your business. We obsess over kerning, line-height, hierarchy, and optical balance."},{"number":"03","title":"Longevity Over Micro-Trends","description":"Design should endure. We construct identities that look fresh on day one and remain distinguished a decade later."},{"number":"04","title":"Flawless Physical Execution","description":"A great concept is useless if it fails at the press. We guarantee zero errors across resolution, CMYK separations, and die-cuts."}],"toolsEyebrow":"03 Tools of the Trade","toolsHeading":"Deep mastery in Adobe Creative Suite & prepress.","tools":[{"iconName":"PenTool","name":"Adobe Illustrator","role":"Vector Identity & Typography","description":"Precision bezier curve construction, custom letterform drafting, and infinite-resolution logo systems."},{"iconName":"Palette","name":"Adobe Photoshop","role":"Art Direction & Retouching","description":"High-end color grading, photographic composites, texture generation, and editorial mockups."},{"iconName":"BookOpen","name":"Adobe InDesign","role":"Publication & Editorial Grid","description":"Master pages, strict Swiss grid systems, paragraph styling, and press-ready book or magazine imposition."},{"iconName":"Camera","name":"Adobe Lightroom","role":"Fashion & Campaign Grading","description":"Tonal calibration, editorial lookbook styling, and consistent campaign palette development."},{"iconName":"Printer","name":"Prepress Color Standards","role":"CMYK & Pantone Precision","description":"Spot color separations, bleed calibrations, die-line creation, and commercial printer coordination."},{"iconName":"Layers","name":"Tactile Print Finishes","role":"Material & Paper Engineering","description":"Embossing, debossing, hot foil stamping, spot UV varnish, and heavy cotton or linen paper stock curation."}],"processEyebrow":"04 Creative Process","processHeading":"From initial spark to press-ready delivery.","locationPrimaryLabel":"Principal Studio Hub","locationPrimaryHeading":"Chelmsford, Essex & London","locationSecondaryLabel":"International Line","locationSecondaryHeading":"India Coordination Office","locationSecondaryDescription":"Direct remote line for overseas commissions and agile production cycles.","teamEyebrow":"The People","teamHeading":"Production Team","teamDescription":"Exceptional talent is the cornerstone of everything we create. Our team brings decades of combined experience in multimedia production.","finalHeading":"Ready to elevate your brand with Joozz Designing?","finalPrimaryText":"Inquire for Availability","finalSecondaryText":"Browse Archive","sectionVisibility":{"hero":true,"story":true,"manifesto":true,"tools":true,"process":true,"locations":true,"team":true,"finalCta":true}}') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('services_content', '{"eyebrow":"Our Services & Solutions","heading":"Design Solutions.","highlightedHeading":"Crafted with Precision.","description":"With over 14 years of professional experience, Joozz Designing delivers high-impact branding, print mastery, and digital design tailored to your strategic business goals.","guaranteeEyebrow":"Technical Excellence Guarantee","guaranteeHeading":"100% Press-Ready & Vector Standards","guaranteeDescription":"We eliminate costly printer rejections. Every file pack includes clean spot color separations, Pantone matching, accurate 3mm+ bleeds, trimmed die-lines, and infinite-resolution master SVG/EPS/AI vector files.","guaranteeButtonText":"Discuss Your Specifications","guaranteeButtonLink":"/contact","detailBackText":"Back to Services","detailCtaText":"Start a Project","detailCtaLink":"/contact","offersEyebrow":"Scope of Capabilities","offersHeading":"What We Offer","deliverablesEyebrow":"Guaranteed Standard","deliverablesHeading":"Core Deliverables","deliverablesDescription":"Every project includes full vector production master files, color-separated proofs, and direct technical printer coordination.","finalHeading":"Ready to Collaborate?","finalDescription":"Elevate your brand with 14+ years of bespoke design mastery, direct designer collaboration, and guaranteed press-ready excellence.","finalPrimaryText":"Get a Quote","finalPrimaryLink":"/contact","finalSecondaryText":"View Portfolio","finalSecondaryLink":"/portfolio","sectionVisibility":{"hero":true,"list":true,"guarantee":true,"offers":true,"finalCta":true}}') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('portfolio_content', '{"eyebrow":"Curated Design Archive","heading":"A showcase of marks, print collateral &","highlightedHeading":"visual identities.","description":"Explore recent works across branding, packaging, editorial layout, fashion photography, and kinetic motion reels. Click any piece to inspect technical deliverables, typography details, and client specifications.","allFilterLabel":"All","imageActionText":"Inspect Details","videoActionText":"Expand Full Reel","deliverablesLabel":"Deliverables","sectionVisibility":{"hero":true,"filters":true,"gallery":true}}') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('global_content', '{"logo":"/media/global/logo.png","brandLabel":"JOOZZ","brandLocation":"STUDIO UK","servicesMenuLabel":"Our Services","servicesMenuAllText":"View All Services","startProjectText":"Start Project","mobilePhoneLabel":"Direct UK Line:","footerDescription":"Independent graphic design, brand architecture, and visual storytelling. Chelmsford & London, United Kingdom.","availabilityText":"Available for New Brand Projects","studioLinksHeading":"Studio","disciplinesLinksHeading":"Disciplines","contactHeading":"Get in Touch","copyrightText":"Joozz Designing. All Rights Reserved.","footerLocationText":"Chelmsford, Essex Â· London WC2H 9JQ","footerRegistrationText":"UK Registered Design Studio","notFoundLabel":"// 404 ERROR","notFoundHeading":"Page Not Found","notFoundDescription":"The page you are looking for does not exist or may have moved. Please return to the homepage or explore our core disciplines.","notFoundButtonText":"Return Home"}') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO site_settings (setting_key, setting_value) VALUES ('contact_content', '{"heading":"Tell us about your brand. Let''s create something extraordinary.","introduction":"Whether you need a full visual identity, high-finish print collateral, or an ongoing creative retainer, our team will get back to you directly with availability and next steps.","formHeading":"Project Inquiry Form","formDescription":"Fill in your requirements below for a detailed project estimate and timeline.","contactsHeading":"Direct Studio Contacts","responseLabel":"48–72 hour concept turnaround","responseTime":"We respond to all project inquiries within 24 hours with a custom project proposal and scheduled kickoff date.","faqEyebrow":"02 Frequently Asked Questions","faqHeading":"Clear answers on process, timelines & delivery.","form":{"nameLabel":"Your Name","namePlaceholder":"e.g. Eleanor Vance","emailLabel":"Email Address","emailPlaceholder":"e.g. eleanor@studio.com","phoneLabel":"Phone / WhatsApp","phonePlaceholder":"+44 7000 000000","optionalLabel":"Optional","serviceLabel":"Project Type","budgetLabel":"Estimated Budget","timelineLabel":"Target Timeline","messageLabel":"Project Details & Objectives","messagePlaceholder":"Tell us about your brand, what deliverables you need, and any specific aesthetic inspirations...","submitText":"Send Project Inquiry","submittingText":"Transmitting Details...","successHeading":"Inquiry Received","successMessage":"Thank you. Our studio will review your project requirements and respond within 24â€“48 hours with initial thoughts and availability.","resetText":"Send Another Message","responseNote":"Direct response within 24â€“48 hours. No middle management.","extraServices":["Ongoing Creative Retainer","Other / Custom Project"],"budgets":["Under Â£1,000","Â£1,000 - Â£3,000","Â£3,000 - Â£6,000","Â£6,000+"],"timelines":["Urgent (Within 1-2 Weeks)","Within 2-4 Weeks","Next 1-2 Months","Flexible / Planning"]},"sectionVisibility":{"hero":true,"form":true,"faqs":true}}') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+INSERT INTO services (slug,number,title,tagline,hero_headline_top,hero_headline_main,description,image_url,image_alt,ideal_for,icon_name,status,sort_order) VALUES ('corporate-design','01','Corporate Design Solutions','Professional designs for businesses & organisations','BUSINESS & ENTERPRISE','CORPORATE DESIGN SOLUTIONS','Comprehensive corporate branding materials, internal communication designs, event branding, signage, menus, price lists, and promotional display systems.','https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1200&q=80','Corporate business architecture, identity systems, and workspace documentation','Corporations, SMEs, event organizers, hospitality, and growing organizations.','FileText','published',0) ON DUPLICATE KEY UPDATE number=VALUES(number),title=VALUES(title),tagline=VALUES(tagline),hero_headline_top=VALUES(hero_headline_top),hero_headline_main=VALUES(hero_headline_main),description=VALUES(description),image_url=VALUES(image_url),image_alt=VALUES(image_alt),ideal_for=VALUES(ideal_for),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order);
+SET @service_id=(SELECT id FROM services WHERE slug='corporate-design');
+DELETE FROM service_deliverables WHERE service_id=@service_id;
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Corporate Branding Materials & Identity',0);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Internal Communication Designs & Documents',1);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Event Branding, Signage & Backdrops',2);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Menus, Price Lists & Promotional Displays',3);
+DELETE FROM service_offers WHERE service_id=@service_id;
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'01','Corporate Branding Materials','Executive presentation decks, annual reports, company profiles, and authoritative letterhead systems.',0);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'02','Internal Communication','Staff handbooks, training guidelines, operational documents, and corporate newsletters crafted for clarity.',1);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'03','Event Branding & Signage','Conference backdrops, exhibition banners, registration booths, and high-impact stage branding.',2);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'04','Menus & Price Lists','Elegant, tactile dining menus, salon price boards, and luxury catalog layout systems.',3);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'05','Promotional Display Systems','Point-of-sale displays, pop-up trade show banners, acrylic standees, and retail architectural graphics.',4);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'06','Brand Asset Maintenance','Long-term template libraries and vector asset stewardship for consistent organizational communication.',5);
+INSERT INTO services (slug,number,title,tagline,hero_headline_top,hero_headline_main,description,image_url,image_alt,ideal_for,icon_name,status,sort_order) VALUES ('logo-brand-identity','02','Logo Design & Brand Identity','Unique & memorable marks representing your brand''s essence','MEMORABLE & ICONIC','LOGO DESIGN & BRAND IDENTITY','Custom logo concepts in minimal, modern, or classic styles. Full brand identity development, color palette & typography selection, brand guidelines for consistent usage, and complete logo redesign & brand refresh.','https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=1200&q=80','Precision vector logo sketches and brand identity systems','Startups, established companies, and businesses looking for a complete visual makeover.','PenTool','published',1) ON DUPLICATE KEY UPDATE number=VALUES(number),title=VALUES(title),tagline=VALUES(tagline),hero_headline_top=VALUES(hero_headline_top),hero_headline_main=VALUES(hero_headline_main),description=VALUES(description),image_url=VALUES(image_url),image_alt=VALUES(image_alt),ideal_for=VALUES(ideal_for),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order);
+SET @service_id=(SELECT id FROM services WHERE slug='logo-brand-identity');
+DELETE FROM service_deliverables WHERE service_id=@service_id;
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Custom Logo Concepts (Minimal, Modern, or Classic)',0);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Brand Identity Development & Asset Kits',1);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Colour Palette & Typography Selection',2);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Brand Guidelines for Consistent Usage',3);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Logo Redesign & Brand Refresh',4);
+DELETE FROM service_offers WHERE service_id=@service_id;
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'01','Custom Logo Concepts','Distinctive vector marks drafted with mathematical grid balance in minimal, modern, or classic aesthetics.',0);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'02','Brand Identity Development','Full visual ecosystem architecture defining primary, secondary, and badge variations for versatile deployment.',1);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'03','Colour & Typography Selection','Curated harmonic color palettes (CMYK, RGB, Pantone, HEX) paired with bespoke typographic hierarchy.',2);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'04','Brand Guidelines Manual','Comprehensive style guide detailing clear-space, improper usage, grid alignments, and brand voice rules.',3);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'05','Logo Redesign & Refresh','Modernizing outdated trademarks while preserving established brand equity and market heritage.',4);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'06','Master Vector Asset Kit','High-resolution production formats (.AI, .EPS, .SVG, .PDF, .PNG) ready for billboards down to favicons.',5);
+INSERT INTO services (slug,number,title,tagline,hero_headline_top,hero_headline_main,description,image_url,image_alt,ideal_for,icon_name,status,sort_order) VALUES ('branding-marketing-design','03','Branding & Marketing Design','Visual assets that strengthen your brand presence','HIGH IMPACT & ENGAGING','BRANDING & MARKETING DESIGN','Company profiles & brand presentations, marketing campaigns & promotional creatives, advertising design for both print & digital, and compelling visual storytelling for brand communication.','https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1200&q=80','Marketing strategy, brand campaign collateral, and visual presentations','Brands executing high-impact marketing, investor pitches, and multi-channel advertising.','Palette','published',2) ON DUPLICATE KEY UPDATE number=VALUES(number),title=VALUES(title),tagline=VALUES(tagline),hero_headline_top=VALUES(hero_headline_top),hero_headline_main=VALUES(hero_headline_main),description=VALUES(description),image_url=VALUES(image_url),image_alt=VALUES(image_alt),ideal_for=VALUES(ideal_for),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order);
+SET @service_id=(SELECT id FROM services WHERE slug='branding-marketing-design');
+DELETE FROM service_deliverables WHERE service_id=@service_id;
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Company Profiles & Brand Presentations',0);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Marketing Campaigns & Promotional Creatives',1);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Advertising Design (Print & Digital)',2);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Visual Storytelling for Brand Communication',3);
+DELETE FROM service_offers WHERE service_id=@service_id;
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'01','Company Profiles & Decks','High-conversion pitch decks, investment brochures, and corporate portfolios designed to close deals.',0);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'02','Marketing Campaigns','End-to-end promotional visuals across seasonal rollouts, product launches, and retail promotions.',1);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'03','Print & Digital Advertising','Newspaper ads, billboard placements, magazine spreads, and digital display ad creatives.',2);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'04','Visual Storytelling','Infographics, iconography suites, and narrative visual devices that simplify complex value propositions.',3);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'05','Promotional Merchandising','Branded collateral, packaging inserts, apparel concepts, and corporate gifting aesthetics.',4);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'06','Multi-Channel Continuity','Unified look-and-feel executed across out-of-home advertising, web touchpoints, and print flyers.',5);
+INSERT INTO services (slug,number,title,tagline,hero_headline_top,hero_headline_main,description,image_url,image_alt,ideal_for,icon_name,status,sort_order) VALUES ('print-design','04','Print Design','High-quality print designs created with attention to detail','TACTILE & PRESS READY','PRINT DESIGN MASTERY','Business cards & corporate stationery, brochures, flyers & leaflets, posters, banners & roll-ups, magazine & catalogue design, and premium packaging & label design.','/media/portfolio/print-design.jpg','Open editorial print magazine and catalogue layout design','Publishers, retail brands, FMCG packaging, corporate events, and direct marketing.','Printer','published',3) ON DUPLICATE KEY UPDATE number=VALUES(number),title=VALUES(title),tagline=VALUES(tagline),hero_headline_top=VALUES(hero_headline_top),hero_headline_main=VALUES(hero_headline_main),description=VALUES(description),image_url=VALUES(image_url),image_alt=VALUES(image_alt),ideal_for=VALUES(ideal_for),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order);
+SET @service_id=(SELECT id FROM services WHERE slug='print-design');
+DELETE FROM service_deliverables WHERE service_id=@service_id;
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Business Cards & Corporate Stationery',0);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Brochures, Flyers & Leaflets',1);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Posters, Banners & Roll-Ups',2);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Magazine & Catalogue Design',3);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Packaging & Label Design',4);
+DELETE FROM service_offers WHERE service_id=@service_id;
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'01','Stationery & Business Cards','Luxury cotton cards, hot foil stamping, debossing dielines, letterheads, and bespoke envelopes.',0);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'02','Brochures & Flyers','Tri-fold, bi-fold, gatefold, and z-fold corporate brochures designed with strict Swiss grid precision.',1);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'03','Posters & Large Format','Exhibition posters, outdoor roll-up banners, window vinyls, and architectural hoardings.',2);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'04','Magazines & Catalogues','Multi-page publication layouts, master baseline grids, editorial rhythm, and press imposition.',3);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'05','Packaging & Labels','Product box dielines, bottle labels, hangtags, and packaging sleeves with spot UV and foil finishing.',4);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'06','Prepress Calibration','Direct technical liaison with commercial print houses guaranteeing zero bleed or color shift errors.',5);
+INSERT INTO services (slug,number,title,tagline,hero_headline_top,hero_headline_main,description,image_url,image_alt,ideal_for,icon_name,status,sort_order) VALUES ('digital-social-media','05','Digital & Social Media Design','Creative digital designs optimised for online platforms','MODERN & HIGH CONVERTING','DIGITAL & SOCIAL MEDIA DESIGN','Social media posts & ad creatives, web banners & digital advertisements, presentation & pitch deck design, and high-converting email marketing visuals.','/media/portfolio/digital-social-media.jpg','Instagram, Facebook, Messenger, and social media digital marketing visuals','Digital-first brands, eCommerce stores, influencers, agencies, and online campaigns.','Layers','published',4) ON DUPLICATE KEY UPDATE number=VALUES(number),title=VALUES(title),tagline=VALUES(tagline),hero_headline_top=VALUES(hero_headline_top),hero_headline_main=VALUES(hero_headline_main),description=VALUES(description),image_url=VALUES(image_url),image_alt=VALUES(image_alt),ideal_for=VALUES(ideal_for),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order);
+SET @service_id=(SELECT id FROM services WHERE slug='digital-social-media');
+DELETE FROM service_deliverables WHERE service_id=@service_id;
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Social Media Posts & Ad Creatives',0);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Web Banners & Digital Advertisements',1);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Presentation & Pitch Deck Design',2);
+INSERT INTO service_deliverables (service_id,value,sort_order) VALUES (@service_id,'Email Marketing Visuals',3);
+DELETE FROM service_offers WHERE service_id=@service_id;
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'01','Social Media Posts & Creatives','Scroll-stopping Instagram carousels, feed posts, story graphics, and LinkedIn thought leadership plates.',0);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'02','Web Banners & Digital Ads','Google Display ads, Meta paid campaign assets, website hero banners, and promotional sliders.',1);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'03','Pitch Decks & Presentations','Custom PowerPoint, Keynote, and Figma pitch decks engineered for investor meetings and webinars.',2);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'04','Email Marketing Visuals','Branded newsletter headers, promotional product banners, and seasonal email marketing graphics.',3);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'05','Social Brand Templates','Editable Canva/Photoshop template systems empowering your internal team to publish on-brand content.',4);
+INSERT INTO service_offers (service_id,number,title,description,sort_order) VALUES (@service_id,'06','Motion & Animated Banners','Subtle GIF and micro-animated assets to boost click-through rates and campaign visibility.',5);
+INSERT INTO portfolio_categories (name,slug,is_active,sort_order) VALUES ('Logo Design','logo-design',1,0) ON DUPLICATE KEY UPDATE name=VALUES(name),is_active=1,sort_order=VALUES(sort_order);
+INSERT INTO portfolio_categories (name,slug,is_active,sort_order) VALUES ('Branding','branding',1,1) ON DUPLICATE KEY UPDATE name=VALUES(name),is_active=1,sort_order=VALUES(sort_order);
+INSERT INTO portfolio_categories (name,slug,is_active,sort_order) VALUES ('Brochures & Posters','brochures-posters',1,2) ON DUPLICATE KEY UPDATE name=VALUES(name),is_active=1,sort_order=VALUES(sort_order);
+INSERT INTO portfolio_categories (name,slug,is_active,sort_order) VALUES ('Business Cards','business-cards',1,3) ON DUPLICATE KEY UPDATE name=VALUES(name),is_active=1,sort_order=VALUES(sort_order);
+INSERT INTO portfolio_categories (name,slug,is_active,sort_order) VALUES ('Magazine Layout','magazine-layout',1,4) ON DUPLICATE KEY UPDATE name=VALUES(name),is_active=1,sort_order=VALUES(sort_order);
+INSERT INTO portfolio_categories (name,slug,is_active,sort_order) VALUES ('Photography','photography',1,5) ON DUPLICATE KEY UPDATE name=VALUES(name),is_active=1,sort_order=VALUES(sort_order);
+INSERT INTO portfolio_categories (name,slug,is_active,sort_order) VALUES ('Reels / Motion','reels-motion',1,6) ON DUPLICATE KEY UPDATE name=VALUES(name),is_active=1,sort_order=VALUES(sort_order);
+SET @category_id=(SELECT id FROM portfolio_categories WHERE slug='logo-design');
+INSERT INTO portfolio_items (category_id,slug,title,media_type,thumbnail_url,media_url,is_embed,client,project_year,aspect_ratio,description,placeholder_label,placeholder_color,status,featured,sort_order) VALUES (@category_id,'p1','Architectural Identity & Wordmark','image','https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80','https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80',0,'Apex Architecture Studio','2024','portrait','Minimalist geometric emblem and custom typography engineered for an elite architectural studio.','Minimalist Architectural Wordmark & Identity','from-zinc-900 to-stone-900','published',1,0) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),title=VALUES(title),media_type=VALUES(media_type),thumbnail_url=VALUES(thumbnail_url),media_url=VALUES(media_url),is_embed=VALUES(is_embed),client=VALUES(client),project_year=VALUES(project_year),aspect_ratio=VALUES(aspect_ratio),description=VALUES(description),placeholder_label=VALUES(placeholder_label),placeholder_color=VALUES(placeholder_color),featured=VALUES(featured),sort_order=VALUES(sort_order);
+SET @portfolio_id=(SELECT id FROM portfolio_items WHERE slug='p1');
+DELETE FROM portfolio_deliverables WHERE portfolio_id=@portfolio_id;
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Vector Master Marks',0);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Monochrome Variants',1);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Sub-brand System',2);
+SET @category_id=(SELECT id FROM portfolio_categories WHERE slug='reels-motion');
+INSERT INTO portfolio_items (category_id,slug,title,media_type,thumbnail_url,media_url,is_embed,client,project_year,aspect_ratio,description,placeholder_label,placeholder_color,status,featured,sort_order) VALUES (@category_id,'r1','Kinetic Brand Identity Motion Showcase','video','https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80','/media/home/5092427-hd_1920_1080_30fps - Trim.mp4',0,'Joozz Motion Lab','2024','landscape','Dynamic typographic and brand logo animation exploring modern pacing, vector distortions, and cinematic audio sync.','Kinetic Typography & Brand Motion','from-amber-950/40 to-zinc-900','published',1,1) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),title=VALUES(title),media_type=VALUES(media_type),thumbnail_url=VALUES(thumbnail_url),media_url=VALUES(media_url),is_embed=VALUES(is_embed),client=VALUES(client),project_year=VALUES(project_year),aspect_ratio=VALUES(aspect_ratio),description=VALUES(description),placeholder_label=VALUES(placeholder_label),placeholder_color=VALUES(placeholder_color),featured=VALUES(featured),sort_order=VALUES(sort_order);
+SET @portfolio_id=(SELECT id FROM portfolio_items WHERE slug='r1');
+DELETE FROM portfolio_deliverables WHERE portfolio_id=@portfolio_id;
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'1080p Master Reel',0);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Social 9:16 Cut',1);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Audio Sync & Sound Design',2);
+SET @category_id=(SELECT id FROM portfolio_categories WHERE slug='branding');
+INSERT INTO portfolio_items (category_id,slug,title,media_type,thumbnail_url,media_url,is_embed,client,project_year,aspect_ratio,description,placeholder_label,placeholder_color,status,featured,sort_order) VALUES (@category_id,'p2','Artisan Coffee Roasters Brand System','image','https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1000&q=80','https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1000&q=80',0,'Vanguard Coffee Roasters','2024','landscape','Comprehensive visual identity including packaging labels, custom stamp icons, and warm ochre color system.','Artisan Coffee Packaging & Identity System','from-amber-950/40 to-stone-900','published',1,2) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),title=VALUES(title),media_type=VALUES(media_type),thumbnail_url=VALUES(thumbnail_url),media_url=VALUES(media_url),is_embed=VALUES(is_embed),client=VALUES(client),project_year=VALUES(project_year),aspect_ratio=VALUES(aspect_ratio),description=VALUES(description),placeholder_label=VALUES(placeholder_label),placeholder_color=VALUES(placeholder_color),featured=VALUES(featured),sort_order=VALUES(sort_order);
+SET @portfolio_id=(SELECT id FROM portfolio_items WHERE slug='p2');
+DELETE FROM portfolio_deliverables WHERE portfolio_id=@portfolio_id;
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Brand Guidelines',0);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Coffee Bag Packaging',1);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Menu Collateral',2);
+SET @category_id=(SELECT id FROM portfolio_categories WHERE slug='reels-motion');
+INSERT INTO portfolio_items (category_id,slug,title,media_type,thumbnail_url,media_url,is_embed,client,project_year,aspect_ratio,description,placeholder_label,placeholder_color,status,featured,sort_order) VALUES (@category_id,'r2','Editorial Fashion Lookbook Reel','video','https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80','/media/home/7598770-hd_1920_1080_30fps - Trim-compressed.mp4',0,'Maison Lopez Runway','2024','vertical','High-energy vertical reel showcasing campaign art direction, typography supers, and editorial transitions.','Vertical Runway Editorial Motion','from-zinc-900 to-stone-900','published',1,3) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),title=VALUES(title),media_type=VALUES(media_type),thumbnail_url=VALUES(thumbnail_url),media_url=VALUES(media_url),is_embed=VALUES(is_embed),client=VALUES(client),project_year=VALUES(project_year),aspect_ratio=VALUES(aspect_ratio),description=VALUES(description),placeholder_label=VALUES(placeholder_label),placeholder_color=VALUES(placeholder_color),featured=VALUES(featured),sort_order=VALUES(sort_order);
+SET @portfolio_id=(SELECT id FROM portfolio_items WHERE slug='r2');
+DELETE FROM portfolio_deliverables WHERE portfolio_id=@portfolio_id;
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'9:16 Instagram Reel',0);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'4K Campaign Master',1);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Story Highlight Cuts',2);
+SET @category_id=(SELECT id FROM portfolio_categories WHERE slug='brochures-posters');
+INSERT INTO portfolio_items (category_id,slug,title,media_type,thumbnail_url,media_url,is_embed,client,project_year,aspect_ratio,description,placeholder_label,placeholder_color,status,featured,sort_order) VALUES (@category_id,'p3','Biennale Exhibition Large Poster Series','image','https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1000&q=80','https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1000&q=80',0,'London Design Biennale','2023','portrait','Typographic exhibition posters utilizing high-contrast Swiss grid systems and metallic ink separations.','High-Contrast Typographic Exhibition Poster','from-zinc-900 to-neutral-900','published',1,4) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),title=VALUES(title),media_type=VALUES(media_type),thumbnail_url=VALUES(thumbnail_url),media_url=VALUES(media_url),is_embed=VALUES(is_embed),client=VALUES(client),project_year=VALUES(project_year),aspect_ratio=VALUES(aspect_ratio),description=VALUES(description),placeholder_label=VALUES(placeholder_label),placeholder_color=VALUES(placeholder_color),featured=VALUES(featured),sort_order=VALUES(sort_order);
+SET @portfolio_id=(SELECT id FROM portfolio_items WHERE slug='p3');
+DELETE FROM portfolio_deliverables WHERE portfolio_id=@portfolio_id;
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'A1 Poster Series',0);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Digital Social Teasers',1);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Exhibition Program',2);
+SET @category_id=(SELECT id FROM portfolio_categories WHERE slug='business-cards');
+INSERT INTO portfolio_items (category_id,slug,title,media_type,thumbnail_url,media_url,is_embed,client,project_year,aspect_ratio,description,placeholder_label,placeholder_color,status,featured,sort_order) VALUES (@category_id,'p4','Executive Foil-Stamped Business Cards','image','https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1000&q=80','https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1000&q=80',0,'Shelton Chambers','2024','square','Tactile cotton paper cards featuring copper foil debossing and matte painted edges.','Luxury Copper Foil Debossed Stationery','from-stone-900 to-zinc-950','published',1,5) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),title=VALUES(title),media_type=VALUES(media_type),thumbnail_url=VALUES(thumbnail_url),media_url=VALUES(media_url),is_embed=VALUES(is_embed),client=VALUES(client),project_year=VALUES(project_year),aspect_ratio=VALUES(aspect_ratio),description=VALUES(description),placeholder_label=VALUES(placeholder_label),placeholder_color=VALUES(placeholder_color),featured=VALUES(featured),sort_order=VALUES(sort_order);
+SET @portfolio_id=(SELECT id FROM portfolio_items WHERE slug='p4');
+DELETE FROM portfolio_deliverables WHERE portfolio_id=@portfolio_id;
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'600gsm Cotton Stock Spec',0);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Copper Foil Die Setup',1);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Digital QR Integration',2);
+SET @category_id=(SELECT id FROM portfolio_categories WHERE slug='magazine-layout');
+INSERT INTO portfolio_items (category_id,slug,title,media_type,thumbnail_url,media_url,is_embed,client,project_year,aspect_ratio,description,placeholder_label,placeholder_color,status,featured,sort_order) VALUES (@category_id,'p5','Editorial Lookbook & Quarterly Journal','image','https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80','https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80',0,'Covent Review','2023','landscape','64-page luxury editorial publication featuring bespoke serif typography, wide margins, and curated imagery.','Editorial Magazine Spread & Swiss Grid Layout','from-zinc-900 to-neutral-900','published',0,6) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),title=VALUES(title),media_type=VALUES(media_type),thumbnail_url=VALUES(thumbnail_url),media_url=VALUES(media_url),is_embed=VALUES(is_embed),client=VALUES(client),project_year=VALUES(project_year),aspect_ratio=VALUES(aspect_ratio),description=VALUES(description),placeholder_label=VALUES(placeholder_label),placeholder_color=VALUES(placeholder_color),featured=VALUES(featured),sort_order=VALUES(sort_order);
+SET @portfolio_id=(SELECT id FROM portfolio_items WHERE slug='p5');
+DELETE FROM portfolio_deliverables WHERE portfolio_id=@portfolio_id;
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Complete 64-page Layout',0);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Master Grid Templates',1);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Press-ready PDF with Bleeds',2);
+SET @category_id=(SELECT id FROM portfolio_categories WHERE slug='photography');
+INSERT INTO portfolio_items (category_id,slug,title,media_type,thumbnail_url,media_url,is_embed,client,project_year,aspect_ratio,description,placeholder_label,placeholder_color,status,featured,sort_order) VALUES (@category_id,'p6','Haute Couture Editorial Campaign','image','https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80','https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80',0,'Maison Lopez','2024','portrait','Cinematic studio lighting and high-fashion portraiture with rich tonal color grading.','Editorial Fashion Portraiture & Lighting','from-stone-900 to-zinc-900','published',0,7) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),title=VALUES(title),media_type=VALUES(media_type),thumbnail_url=VALUES(thumbnail_url),media_url=VALUES(media_url),is_embed=VALUES(is_embed),client=VALUES(client),project_year=VALUES(project_year),aspect_ratio=VALUES(aspect_ratio),description=VALUES(description),placeholder_label=VALUES(placeholder_label),placeholder_color=VALUES(placeholder_color),featured=VALUES(featured),sort_order=VALUES(sort_order);
+SET @portfolio_id=(SELECT id FROM portfolio_items WHERE slug='p6');
+DELETE FROM portfolio_deliverables WHERE portfolio_id=@portfolio_id;
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Campaign Lookbook Art Direction',0);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'High-res Master Retouching',1);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Print Collateral Formats',2);
+SET @category_id=(SELECT id FROM portfolio_categories WHERE slug='branding');
+INSERT INTO portfolio_items (category_id,slug,title,media_type,thumbnail_url,media_url,is_embed,client,project_year,aspect_ratio,description,placeholder_label,placeholder_color,status,featured,sort_order) VALUES (@category_id,'p7','Boutique Heritage Typography System','image','https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80','https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80',0,'St. Clair Heritage Hotel','2023','square','Bespoke typographic treatment and monogram lockups for a luxury heritage hospitality venue.','Heritage Monogram & Luxury Signage Suite','from-amber-950/30 to-zinc-900','published',0,8) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),title=VALUES(title),media_type=VALUES(media_type),thumbnail_url=VALUES(thumbnail_url),media_url=VALUES(media_url),is_embed=VALUES(is_embed),client=VALUES(client),project_year=VALUES(project_year),aspect_ratio=VALUES(aspect_ratio),description=VALUES(description),placeholder_label=VALUES(placeholder_label),placeholder_color=VALUES(placeholder_color),featured=VALUES(featured),sort_order=VALUES(sort_order);
+SET @portfolio_id=(SELECT id FROM portfolio_items WHERE slug='p7');
+DELETE FROM portfolio_deliverables WHERE portfolio_id=@portfolio_id;
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Custom Monogram',0);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Hotel Stationery Suite',1);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Signage Specifications',2);
+SET @category_id=(SELECT id FROM portfolio_categories WHERE slug='brochures-posters');
+INSERT INTO portfolio_items (category_id,slug,title,media_type,thumbnail_url,media_url,is_embed,client,project_year,aspect_ratio,description,placeholder_label,placeholder_color,status,featured,sort_order) VALUES (@category_id,'p8','Press-Ready Luxury Product Packaging','image','https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=80','https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=80',0,'Aura Botanical Skincare','2024','landscape','Multi-panel folding brochure and rigid box sleeve with spot UV varnish and custom die-cut contour.','Luxury Packaging Box & Die-Cut Brochure','from-zinc-900 to-stone-950','published',0,9) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),title=VALUES(title),media_type=VALUES(media_type),thumbnail_url=VALUES(thumbnail_url),media_url=VALUES(media_url),is_embed=VALUES(is_embed),client=VALUES(client),project_year=VALUES(project_year),aspect_ratio=VALUES(aspect_ratio),description=VALUES(description),placeholder_label=VALUES(placeholder_label),placeholder_color=VALUES(placeholder_color),featured=VALUES(featured),sort_order=VALUES(sort_order);
+SET @portfolio_id=(SELECT id FROM portfolio_items WHERE slug='p8');
+DELETE FROM portfolio_deliverables WHERE portfolio_id=@portfolio_id;
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Die-cut Vector Templates',0);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'Spot UV Layer Files',1);
+INSERT INTO portfolio_deliverables (portfolio_id,value,sort_order) VALUES (@portfolio_id,'3D Packaging Proofs',2);
+INSERT INTO faqs (question,answer,is_visible,sort_order) SELECT 'What is the typical turnaround time for a project?','Initial conceptual exploration (2–3 distinct routes) is presented within 48 to 72 hours for brand marks and logo design. Full brand universe packages and multi-page editorial publications typically take 2 to 3 weeks with dedicated feedback milestones.',1,0 WHERE NOT EXISTS (SELECT 1 FROM faqs WHERE question='What is the typical turnaround time for a project?');
+INSERT INTO faqs (question,answer,is_visible,sort_order) SELECT 'What deliverables and file formats are provided upon completion?','You receive a complete master archive including scalable vector files (.AI, .EPS, .SVG, .PDF), transparent web formats (.PNG, .WebP), and press-ready CMYK PDFs with crop marks, bleeds, and Pantone spot specifications.',1,1 WHERE NOT EXISTS (SELECT 1 FROM faqs WHERE question='What deliverables and file formats are provided upon completion?');
+INSERT INTO faqs (question,answer,is_visible,sort_order) SELECT 'Do you work with international clients outside the United Kingdom?','Yes! While based primarily in Chelmsford and London, United Kingdom, our studio maintains a dedicated international line and collaborates with founders and creative directors globally across Europe, North America, and Asia.',1,2 WHERE NOT EXISTS (SELECT 1 FROM faqs WHERE question='Do you work with international clients outside the United Kingdom?');
+INSERT INTO faqs (question,answer,is_visible,sort_order) SELECT 'Can you liaise directly with my commercial print shop?','Absolutely. We regularly coordinate directly with commercial printers to verify paper stocks, spot UV / foil debossing die-lines, and press proofs to guarantee zero production surprises.',1,3 WHERE NOT EXISTS (SELECT 1 FROM faqs WHERE question='Can you liaise directly with my commercial print shop?');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'header','Home','/',1,0 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='header' AND label='Home');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'header','About','/about',1,1 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='header' AND label='About');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'header','Services','/services',1,2 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='header' AND label='Services');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'header','Portfolio','/portfolio',1,3 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='header' AND label='Portfolio');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'header','Contact','/contact',1,4 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='header' AND label='Contact');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'footer_studio','Home','/',1,5 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='footer_studio' AND label='Home');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'footer_studio','About Us','/about',1,6 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='footer_studio' AND label='About Us');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'footer_studio','Services','/services',1,7 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='footer_studio' AND label='Services');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'footer_studio','Portfolio','/portfolio',1,8 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='footer_studio' AND label='Portfolio');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'footer_studio','Contact','/contact',1,9 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='footer_studio' AND label='Contact');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'footer_disciplines','Logo Design','/services',1,10 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='footer_disciplines' AND label='Logo Design');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'footer_disciplines','Brand Identity','/services',1,11 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='footer_disciplines' AND label='Brand Identity');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'footer_disciplines','Brochure & Print','/services',1,12 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='footer_disciplines' AND label='Brochure & Print');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'footer_disciplines','Business Cards','/services',1,13 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='footer_disciplines' AND label='Business Cards');
+INSERT INTO navigation_items (location,label,url,is_visible,sort_order) SELECT 'footer_disciplines','Fashion Photography','/services',1,14 WHERE NOT EXISTS (SELECT 1 FROM navigation_items WHERE location='footer_disciplines' AND label='Fashion Photography');
+COMMIT;
+-- ===== END 003_seed_existing_content.sql =====
+
+
+-- The public API reads starter reviews from site_settings.client_reviews.
+-- Also seed the legacy CMS testimonials table so its Reviews admin list is populated.
+INSERT INTO testimonials (quote, attribution, role, company, rating, is_visible, sort_order) VALUES
+('We hired Joozz Designing for our complete luxury real estate rebranding. The visual identity, letterpress stationery, and signage mockups they delivered exceeded all our expectations. Exceptional craft and delivery.','Marcus Sterling','Client • Managing Director','Apex Architectural & Real Estate (London)',5,1,0),
+('Our publication needed high-finish editorial layouts and press-ready packaging files on a tight deadline. Joozz handled prepress checks flawlessly. The final printed magazines look world-class.','Elena Rostova','Client • Editor-in-Chief','Luxe Living Magazine',5,1,1),
+('From our initial brief to final brand guidelines handover, working with Joozz was seamless. Their custom logo mark and typography system gave our tech startup an immediate edge in investor pitches.','David Chen','Client • Co-Founder & CEO','Kinetix Digital Labs',5,1,2),
+('The bespoke menu engineering and gold-foil packaging designs elevated our boutique hotel brand across the UK. Their dedication to tactile paper finishes and color calibration is truly unmatched.','Sophia Montgomery','Client • Creative Partner','The Grand Savoy Hospitality',5,1,3),
+('Joozz crafted our complete haute couture campaign lookbook and visual identity. The balance of negative space, bold editorial typography, and print clarity captured our aesthetic vision effortlessly.','Julian Vance','Client • Brand Director','Vance & Co. Luxury Apparel',5,1,4),
+('Exceptional speed, direct senior communication, and flawless vector assets. They re-architected our corporate identity and event signage across 3 European summits with zero friction.','Amara Ndiaye','Client • Head of Global Brand','Novus Energy Group',5,1,5);
+-- Also populate the legacy CMS Team list. Public team images remain in site_settings.production_team.
+INSERT INTO team_members (name, role, image_id, bio, is_visible, sort_order) VALUES
+('JUSTINE',NULL,NULL,NULL,1,0),
+('LORAINE',NULL,NULL,NULL,1,1),
+('JAIBIN',NULL,NULL,NULL,1,2),
+('PRASANTH',NULL,NULL,NULL,1,3),
+('LAJEESH',NULL,NULL,NULL,1,4);
+-- ===== BEGIN 004_cms_documents.sql =====
+CREATE TABLE IF NOT EXISTS cms_documents (
+    document_key VARCHAR(80) PRIMARY KEY,
+    title VARCHAR(180) NOT NULL,
+    route VARCHAR(255) NOT NULL,
+    draft_content LONGTEXT NOT NULL,
+    published_content LONGTEXT NOT NULL,
+    status ENUM('published', 'draft') NOT NULL DEFAULT 'published',
+    updated_by BIGINT UNSIGNED NULL,
+    draft_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    published_at TIMESTAMP NULL DEFAULT NULL,
+    CONSTRAINT fk_cms_documents_admin FOREIGN KEY (updated_by) REFERENCES admins(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS cms_revisions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    document_key VARCHAR(80) NOT NULL,
+    snapshot LONGTEXT NOT NULL,
+    action ENUM('published', 'restored') NOT NULL DEFAULT 'published',
+    created_by BIGINT UNSIGNED NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_cms_revisions_document (document_key, created_at),
+    CONSTRAINT fk_cms_revisions_document FOREIGN KEY (document_key) REFERENCES cms_documents(document_key) ON DELETE CASCADE,
+    CONSTRAINT fk_cms_revisions_admin FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ===== END 004_cms_documents.sql =====
